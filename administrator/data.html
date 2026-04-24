@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>売上表示画面 - 野菜屋レジ管理</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 h-screen w-screen flex flex-col font-sans select-none overflow-hidden text-gray-800">
+
+  <header class="bg-slate-800 p-3 flex justify-between items-center shrink-0 shadow-md text-white">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 bg-slate-600 rounded flex items-center justify-center font-bold">管</div>
+      <span class="text-lg font-bold tracking-tighter">新鮮野菜 産直ポス - 売上管理</span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span class="text-sm bg-slate-700 px-3 py-1 rounded-full text-slate-200">2024年5月20日(月) 稼働中</span>
+      <button class="bg-slate-600 hover:bg-slate-500 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow">管理者メニューへ戻る</button>
+    </div>
+  </header>
+
+  <main class="flex-grow flex flex-col p-6 overflow-hidden">
+    
+    <div class="grid grid-cols-4 gap-6 mb-6">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-blue-600">
+        <p class="text-slate-500 text-sm font-bold">本日合計売上（税込）</p>
+        <p class="text-4xl font-black text-slate-800 mt-1">¥ 124,857</p>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-emerald-600">
+        <p class="text-slate-500 text-sm font-bold">客数</p>
+        <p class="text-4xl font-black text-slate-800 mt-1">142 <span class="text-lg font-normal">名</span></p>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-purple-600">
+        <p class="text-slate-500 text-sm font-bold">客単価</p>
+        <p class="text-4xl font-black text-slate-800 mt-1">¥ 879</p>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-orange-500">
+        <p class="text-slate-500 text-sm font-bold">目標達成率</p>
+        <p class="text-4xl font-black text-slate-800 mt-1">83.2 <span class="text-lg font-normal">%</span></p>
+      </div>
+    </div>
+
+    <div class="flex-grow bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+      <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <h2 class="text-xl font-bold text-slate-700 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2" />
+          </svg>
+          本日の取引詳細
+        </h2>
+        <div class="flex space-x-2">
+          <button class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold hover:bg-slate-100">CSV出力</button>
+          <button class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold hover:bg-slate-100">印刷</button>
+        </div>
+      </div>
+
+      <div class="flex-grow overflow-y-auto">
+        <table class="w-full text-left border-collapse">
+          <thead class="sticky top-0 bg-slate-50 text-slate-500 text-sm uppercase tracking-wider">
+            <tr>
+              <th class="p-4 border-b font-bold">時刻</th>
+              <th class="p-4 border-b font-bold">商品詳細</th>
+              <th class="p-4 border-b font-bold text-right">単価</th>
+              <th class="p-4 border-b font-bold text-center">個数</th>
+              <th class="p-4 border-b font-bold text-right">小計</th>
+              <th class="p-4 border-b font-bold text-right">合計(税込)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-blue-50 transition-colors">
+              <td class="p-4 text-slate-500 font-mono">14:32:10</td>
+              <td class="p-4">
+                <div class="font-bold">バナナ </div>
+                <div class="text-xs text-rose-500 font-bold">割引: -¥30 </div>
+              </td>
+              <td class="p-4 text-right">¥500 </td>
+              <td class="p-4 text-center">1</td>
+              <td class="p-4 text-right text-slate-500">¥470</td>
+              <td rowspan="2" class="p-4 text-right font-black text-lg border-l border-slate-100 bg-slate-50/50">¥857 </td>
+            </tr>
+            <tr class="hover:bg-blue-50 transition-colors">
+              <td class="p-4 text-slate-500 font-mono"></td>
+              <td class="p-4 font-bold">リンゴ </td>
+              <td class="p-4 text-right">¥300 </td>
+              <td class="p-4 text-center">1</td>
+              <td class="p-4 text-right text-slate-500">¥300</td>
+            </tr>
+
+            <tr class="hover:bg-blue-50 transition-colors border-t-2 border-slate-100">
+              <td class="p-4 text-slate-500 font-mono">14:28:45</td>
+              <td class="p-4 font-bold">キャベツ</td>
+              <td class="p-4 text-right">¥200</td>
+              <td class="p-4 text-center">2</td>
+              <td class="p-4 text-right text-slate-500">¥400</td>
+              <td class="p-4 text-right font-black text-lg border-l border-slate-100 bg-slate-50/50">¥440</td>
+            </tr>
+
+            <tr class="hover:bg-blue-50 transition-colors border-t-2 border-slate-100">
+              <td class="p-4 text-slate-500 font-mono">14:15:22</td>
+              <td class="p-4 font-bold">大根</td>
+              <td class="p-4 text-right">¥150</td>
+              <td class="p-4 text-center">1</td>
+              <td class="p-4 text-right text-slate-500">¥150</td>
+              <td class="p-4 text-right font-black text-lg border-l border-slate-100 bg-slate-50/50">¥165</td>
+            </tr>
+            </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-slate-900 text-slate-400 p-2 text-center text-xs shrink-0">
+    Administration Sales Report Mode - Fresh Veggie POS
+  </footer>
+
+</body>
+</html>

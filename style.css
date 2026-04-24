@@ -1,0 +1,15 @@
+@charset "UTF-8";
+
+/* * 基本的なデザインはTailwind CSS(HTMLのclass)で制御しています。
+ * ここには、独自のカスタムスタイルやアニメーションが必要になった場合に追加します。
+ */
+
+body {
+    /* 例：万が一のスクロールバー非表示など、全体にかける設定 */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
