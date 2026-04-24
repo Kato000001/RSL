@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>野菜屋レジ 管理者用メニュー画面</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-100 h-screen w-screen flex flex-col font-sans select-none overflow-hidden text-gray-800">
 
@@ -15,20 +16,20 @@
     </div>
     <div class="flex items-center space-x-6">
       <div class="text-right border-r pr-6 border-slate-600">
-        <span class="text-slate-400 text-xs block">2024/05/20 (月)</span>
-        <span class="text-xl font-mono font-bold text-slate-100">14:35:12</span>
+        <span id="current-date" class="text-slate-400 text-xs block">----/--/-- (-)</span>
+        <span id="current-time" class="text-xl font-mono font-bold text-slate-100">--:--:--</span>
       </div>
       <div class="flex items-center gap-4">
         <div class="text-sm bg-slate-700 px-3 py-1 rounded-full text-slate-200 border border-slate-600">
           ログイン中：店主 (管理者)
         </div>
-        <button class="bg-slate-600 hover:bg-slate-500 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow">ホームへ</button>
-        <button class="bg-red-700 hover:bg-red-600 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow">ログアウト</button>
+        <button id="btn-home" class="bg-slate-600 hover:bg-slate-500 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow">ホームへ</button>
+        <button id="btn-logout" class="bg-red-700 hover:bg-red-600 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow">ログアウト</button>
       </div>
     </div>
   </header>
 
-  <main class="flex-grow flex flex-col items-center p-8 overflow-y-auto">
+  <main class="flex-grow flex flex-col items-center p-8 overflow-y-auto custom-scrollbar">
     
     <div class="w-full max-w-5xl">
       <div class="border-b-2 border-slate-300 pb-4 mb-8 flex justify-between items-end">
@@ -37,7 +38,6 @@
       </div>
 
       <div class="grid grid-cols-3 gap-6">
-        
         <button class="bg-white hover:bg-blue-50 border border-slate-200 active:scale-95 transition-all duration-150 rounded-2xl shadow-md p-8 flex flex-col items-center justify-center group border-b-8 border-blue-600">
           <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,5 +114,6 @@
     </div>
   </footer>
 
+  <script src="script.js"></script>
 </body>
 </html>

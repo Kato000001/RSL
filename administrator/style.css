@@ -1,0 +1,18 @@
+@charset "UTF-8";
+
+/* Aタグのデフォルトの線を消すおまじない（全体用） */
+a.decoration-none {
+    text-decoration: none;
+}
+
+/* スクロールバーの見た目を少しスッキリさせる */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1; /* Tailwindのslate-300相当 */
+    border-radius: 4px;
+}
