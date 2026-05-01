@@ -1,16 +1,15 @@
 @charset "UTF-8";
 
-/* ベースのスタイルはTailwind CSSで管理 */
 body {
-    -ms-overflow-style: none; /* IE, Edge用スクロールバー非表示 */
-    scrollbar-width: none;    /* Firefox用スクロールバー非表示 */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 body::-webkit-scrollbar {
-    display: none; /* Chrome, Safari用スクロールバー非表示 */
+    display: none;
 }
 
-/* aタグのデフォルトのアンダーラインなどを消すための記述 */
-a.decoration-none {
-    text-decoration: none;
+/* モード切替をなめらかにする */
+.transition-all {
+    transition: all 0.3s ease;
 }
