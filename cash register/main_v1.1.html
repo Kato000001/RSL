@@ -12,8 +12,13 @@
     <div class="flex items-center space-x-3">
       <div class="w-8 h-8 bg-green-600 rounded flex items-center justify-center text-white font-bold">菜</div>
       <span class="text-lg font-bold text-gray-700 tracking-tighter">新鮮野菜 産直ポス</span>
-      <span class="ml-4 text-sm font-bold bg-green-100 text-green-800 px-4 py-1 rounded-full border border-green-200">お会計</span>
+      <span class="text-sm font-bold bg-green-100 text-green-800 px-4 py-1 rounded-full border border-green-200">お会計</span>
+      
+      <a href="../index.html" class="bg-slate-600 hover:bg-slate-700 active:bg-slate-800 active:scale-95 transition-all text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm decoration-none flex items-center ml-2">
+        ◀ ホームに戻る
+      </a>
     </div>
+
     <div class="flex items-center space-x-6">
       <div class="text-right leading-tight">
         <div id="checkout-date" class="text-sm opacity-80 text-gray-500">----/--/-- (-)</div>
@@ -129,30 +134,24 @@
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('7')">7</button>
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('8')">8</button>
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('9')">9</button>
-        <button class="bg-red-50 border-b-4 border-red-200 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-red-100 text-red-600 flex items-center justify-center" onclick="clearInput()">AC</button>
+        <button class="bg-red-50 border-b-4 border-red-200 active:border-b-0 active:translate-y-1 text-base font-bold rounded-xl shadow hover:bg-red-100 text-red-600 flex flex-col items-center justify-center leading-tight" onclick="clearCart()">全取消<span class="text-xs font-mono">AC</span></button>
 
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('4')">4</button>
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('5')">5</button>
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('6')">6</button>
-        <button class="bg-pink-50 border-b-4 border-pink-200 active:border-b-0 active:translate-y-1 text-lg font-bold rounded-xl shadow hover:bg-pink-100 text-pink-700 flex items-center justify-center leading-tight" onclick="applyDefaultPrice()">定額</button>
+        <button class="bg-yellow-50 border-b-4 border-yellow-300 active:border-b-0 active:translate-y-1 text-base font-bold rounded-xl shadow hover:bg-yellow-100 text-yellow-800 flex flex-col items-center justify-center leading-tight" onclick="clearInput()">入力<br>クリア</button>
 
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('1')">1</button>
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('2')">2</button>
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('3')">3</button>
-        <button class="bg-yellow-50 border-b-4 border-yellow-300 active:border-b-0 active:translate-y-1 text-lg font-bold rounded-xl shadow hover:bg-yellow-100 text-yellow-800 flex items-center justify-center leading-tight">戻る</button>
+        <button class="bg-orange-50 border-b-4 border-orange-200 active:border-b-0 active:translate-y-1 text-base font-bold rounded-xl shadow hover:bg-orange-100 text-orange-700 flex flex-col items-center justify-center leading-tight" onclick="removeLastItem()">1つ<br>取消</button>
 
-        <button class="col-span-2 bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('0')">0</button>
-        <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('00')">00</button>
-        <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center">.</button>
+        <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('0')">0</button>
+        <button class="col-span-2 bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('00')">00</button>
+        <div></div> <button class="col-span-4 bg-pink-50 border-b-4 border-pink-200 active:border-b-0 active:translate-y-1 text-xl font-bold rounded-xl shadow hover:bg-pink-100 text-pink-700 flex items-center justify-center tracking-widest" onclick="applyDefaultPrice()">定額</button>
 
         <button class="col-span-2 bg-green-600 border-b-4 border-green-800 active:border-b-0 active:translate-y-1 text-xl font-bold rounded-xl shadow text-white hover:bg-green-700 flex items-center justify-center tracking-widest h-16" onclick="addManualEntry()">決定</button>
         <a href="check_v1.1.html" class="col-span-2 bg-emerald-500 border-b-4 border-emerald-700 active:border-b-0 active:translate-y-1 text-xl font-bold rounded-xl shadow text-white hover:bg-emerald-600 flex items-center justify-center tracking-tighter h-16 decoration-none">次のページ</a>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 shrink-0">
-        <a href="../index.html" class="bg-slate-700 border-b-4 border-slate-900 active:border-b-0 active:translate-y-1 text-base font-bold rounded-xl shadow text-white py-3 flex flex-col items-center justify-center leading-tight text-center decoration-none">
-            ホーム画面<br><span class="text-xs opacity-80">に戻る</span>
-        </a>
       </div>
 
     </section>
