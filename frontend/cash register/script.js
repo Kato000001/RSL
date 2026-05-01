@@ -14,8 +14,10 @@ function updateCheckoutClock() {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
     
-    document.getElementById('checkout-date').textContent = `${year}/${month}/${date} (${day})`;
-    document.getElementById('checkout-time').textContent = `${hours}:${minutes}:${seconds}`;
+    const dateEl = document.getElementById('checkout-date');
+    const timeEl = document.getElementById('checkout-time');
+    if (dateEl) dateEl.textContent = `${year}/${month}/${date} (${day})`;
+    if (timeEl) timeEl.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
 setInterval(updateCheckoutClock, 1000);
@@ -23,7 +25,10 @@ updateCheckoutClock();
 
 // --- 状態管理 ---
 let currentInputValue = '0'; // テンキーで入力中の金額
-let cartItems = [];          // レジに打ち込んだ商品のリスト
+let cartItems = [];          // カート内の商品リスト
+let needResetInput = false;  // 次の数字入力で表示をリセットするか
+let amountTendered = 0;      // 預り金
+let isTenderMode = false;    // 預り金入力モード中かどうか
 
 // --- HTML要素の取得 ---
 const displayElement = document.getElementById('input-display');
@@ -36,8 +41,13 @@ const totalElement = document.getElementById('total-display');
 // 1. テンキー関連の処理
 // ==========================================
 function inputNum(num) {
+    if (needResetInput) {
+        currentInputValue = '0';
+        needResetInput = false;
+    }
+
     if (currentInputValue === '0' && num !== '.') {
-        if (num === '00') return; // 最初から「00」は入力させない
+        if (num === '00') return; 
         currentInputValue = num;
     } else {
         if (currentInputValue.length < 9) {
@@ -49,98 +59,145 @@ function inputNum(num) {
 
 function clearInput() {
     currentInputValue = '0';
+    isTenderMode = false; 
     updateInputDisplay();
 }
 
+/**
+ * 入力表示と枠色の更新
+ */
 function updateInputDisplay() {
-    displayElement.innerText = Number(currentInputValue).toLocaleString();
+    const containerEl = document.getElementById('input-container');
+    const badgeEl = document.getElementById('mode-badge');
+
+    // 数字の表示更新
+    if (displayElement) {
+        displayElement.innerText = Number(currentInputValue).toLocaleString();
+    }
+
+    // 枠色とバッジの制御
+    if (containerEl) {
+        if (isTenderMode) {
+            // 【預り金モード】青系に変更
+            containerEl.classList.replace('bg-cyan-50', 'bg-blue-50');
+            containerEl.classList.replace('border-cyan-100', 'border-blue-500');
+            if (displayElement) {
+                displayElement.classList.replace('text-cyan-700', 'text-blue-700');
+            }
+            if (badgeEl) {
+                badgeEl.classList.replace('text-transparent', 'text-white');
+                badgeEl.classList.replace('bg-transparent', 'bg-blue-600');
+            }
+        } else {
+            // 【通常モード】元のシアンに戻す
+            containerEl.classList.replace('bg-blue-50', 'bg-cyan-50');
+            containerEl.classList.replace('border-blue-500', 'border-cyan-100');
+            if (displayElement) {
+                displayElement.classList.replace('text-blue-700', 'text-cyan-700');
+            }
+            if (badgeEl) {
+                badgeEl.classList.replace('text-white', 'text-transparent');
+                badgeEl.classList.replace('bg-blue-600', 'bg-transparent');
+            }
+        }
+    }
 }
 
 // ==========================================
-// 2. 商品をレシートに追加・確定する処理
+// 2. 預り金・商品追加・確定の処理
 // ==========================================
-function addProduct(name, defaultPrice) {
-    // もし1つ前に押した商品が「未確定」の場合
+
+function setTenderedAmount() {
+    isTenderMode = true;     
+    currentInputValue = '0'; 
+    updateInputDisplay();
+    needResetInput = false;
+}
+
+function confirmPrice() {
+    const inputNumValue = parseInt(currentInputValue);
+
+    if (isTenderMode) {
+        amountTendered = inputNumValue;
+        isTenderMode = false; 
+        needResetInput = true;
+        renderReceipt();      
+        updateInputDisplay(); // 枠色を元に戻すために呼び出し
+        return;
+    }
+
+    if (inputNumValue <= 0) return;
+
     if (cartItems.length > 0) {
         const lastItem = cartItems[cartItems.length - 1];
         if (!lastItem.isPriced) {
-            // ①同じ名前の商品なら、個数（数量）を1つ増やすだけ
+            lastItem.unitPrice = inputNumValue;
+            lastItem.isPriced = true;
+            needResetInput = true;
+            renderReceipt();
+            return;
+        }
+    }
+
+    cartItems.push({ 
+        name: '手入力商品', 
+        defaultUnitPrice: inputNumValue, 
+        unitPrice: inputNumValue, 
+        quantity: 1,
+        isPriced: true 
+    });
+    needResetInput = true;
+    renderReceipt();
+}
+
+function addProduct(name, defaultPrice) {
+    isTenderMode = false; 
+    updateInputDisplay(); // モード解除に合わせて色を戻す
+
+    if (cartItems.length > 0) {
+        const lastItem = cartItems[cartItems.length - 1];
+        if (!lastItem.isPriced) {
             if (lastItem.name === name) {
                 lastItem.quantity++;
                 renderReceipt();
-                return; // ここで処理を終わる
+                return;
             } else {
-                // ②違う商品を押した場合は、前の商品を「定額」で自動確定させる
                 lastItem.unitPrice = lastItem.defaultUnitPrice;
                 lastItem.isPriced = true;
             }
         }
     }
 
-    // 新しい商品を「数量1」「未確定」状態でカートに追加
     cartItems.push({ 
         name: name, 
         defaultUnitPrice: parseInt(defaultPrice), 
-        unitPrice: 0,   // まだ単価は決まっていない
-        quantity: 1,    // 数量
-        isPriced: false // 未確定マーク
+        unitPrice: 0,
+        quantity: 1,
+        isPriced: false 
     });
     renderReceipt(); 
 }
 
-// 「定額」ボタンを押した時
 function applyDefaultPrice() {
     if (cartItems.length === 0) return;
     const lastItem = cartItems[cartItems.length - 1];
     
-    // 金額が未確定なら、商品のデフォルト価格を「入力中金額」に表示するだけ！（ここではまだ確定させない）
     if (!lastItem.isPriced) {
         currentInputValue = lastItem.defaultUnitPrice.toString();
         updateInputDisplay();
-        
-        // もしこの後「やっぱり手入力にする」とテンキーを押した場合、数字が綺麗に上書きされるようにする
         needResetInput = true; 
     }
 }
 
-// 「決定」ボタンを押した時（手入力の金額を反映）
-function addManualEntry() {
-    const inputPrice = parseInt(currentInputValue);
-    if (inputPrice <= 0) return;
-
-    if (cartItems.length > 0) {
-        const lastItem = cartItems[cartItems.length - 1];
-        // 金額が未確定なら、テンキーの入力額を「単価」としてセット
-        if (!lastItem.isPriced) {
-            lastItem.unitPrice = inputPrice;
-            lastItem.isPriced = true;
-            clearInput();
-            renderReceipt();
-            return;
-        }
-    }
-
-    // 未確定の商品が無い場合は、独立した手入力商品として追加
-    cartItems.push({ 
-        name: '手入力商品', 
-        defaultUnitPrice: inputPrice, 
-        unitPrice: inputPrice, 
-        quantity: 1,
-        isPriced: true 
-    });
-    clearInput();
-    renderReceipt();
-}
-
 // ==========================================
-// 3. 左側のレシート画面の更新処理
+// 3. 左側のレシート画面 & 計算の更新処理
 // ==========================================
 function renderReceipt() {
+    if (!receiptListElement) return;
     receiptListElement.innerHTML = '';
     let subtotal = 0;
 
     cartItems.forEach(item => {
-        // 金額が確定している場合は「単価 × 個数」で合計を出す
         const itemTotalPrice = item.isPriced ? (item.unitPrice * item.quantity) : 0;
         subtotal += itemTotalPrice; 
         
@@ -148,17 +205,14 @@ function renderReceipt() {
         const isWaiting = !item.isPriced; 
         const nameColor = isWaiting ? 'text-orange-600' : 'text-gray-800';
         
-        // 確定済なら計算結果を表示、未確定なら「---」
         const unitPriceText = isWaiting ? '---' : item.unitPrice.toLocaleString();
         const totalPriceText = isWaiting ? '---' : itemTotalPrice.toLocaleString();
         
-        // 数量が2以上の場合はバッジを表示する
         const quantityBadge = item.quantity > 1 
-            ? `<span class="text-xs bg-${isWaiting ? 'orange' : 'gray'}-200 text-${isWaiting ? 'orange' : 'gray'}-700 px-2 py-0.5 rounded-full ml-2">x${item.quantity}</span>` 
+            ? `<span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full ml-2">x${item.quantity}</span>` 
             : '';
 
         row.className = `flex items-center border-b border-gray-100 pb-2 ${isWaiting ? 'bg-orange-50' : ''}`;
-        
         row.innerHTML = `
             <div class="w-[50%] font-bold ${nameColor} truncate pr-2 flex items-center">
                 ${item.name} ${quantityBadge}
@@ -166,7 +220,6 @@ function renderReceipt() {
             <div class="w-[25%] text-right font-mono text-gray-600 text-base">${unitPriceText}</div>
             <div class="w-[25%] text-right font-mono font-bold ${nameColor}">${totalPriceText}</div>
         `;
-        
         receiptListElement.appendChild(row);
     });
 
@@ -176,21 +229,32 @@ function renderReceipt() {
     const tax = Math.floor(subtotal * taxRate);
     const total = subtotal + tax; 
 
-    subtotalElement.innerText = subtotal.toLocaleString();
-    taxElement.innerText = tax.toLocaleString();
-    totalElement.innerText = total.toLocaleString();
+    if (subtotalElement) subtotalElement.innerText = subtotal.toLocaleString();
+    if (taxElement) taxElement.innerText = tax.toLocaleString();
+    if (totalElement) totalElement.innerText = total.toLocaleString();
+
+    const tenderedDisp = document.getElementById('tendered-display');
+    const changeDisp = document.getElementById('change-display');
+
+    if (tenderedDisp) {
+        tenderedDisp.innerText = amountTendered.toLocaleString();
+    }
+    if (changeDisp) {
+        const change = amountTendered > 0 ? amountTendered - total : 0;
+        changeDisp.innerText = (change >= 0 ? change : 0).toLocaleString();
+    }
 }
 
 // ==========================================
 // 4. 取消・修正機能
 // ==========================================
-
-// 「全取消（AC）」ボタン
 function clearCart() {
-    if (cartItems.length > 0) {
-        const isConfirm = confirm('レシートの商品をすべて取り消しますか？');
+    if (cartItems.length > 0 || amountTendered > 0) {
+        const isConfirm = confirm('レシート内容と預り金をすべてクリアしますか？');
         if (isConfirm) {
             cartItems = []; 
+            amountTendered = 0;
+            isTenderMode = false;
             clearInput();   
             renderReceipt(); 
         }
@@ -199,20 +263,38 @@ function clearCart() {
     }
 }
 
-// 「1つ取消」ボタン
 function removeLastItem() {
     if (cartItems.length > 0) {
         const lastItem = cartItems[cartItems.length - 1];
-        
-        // 直前の商品が未確定、かつ数量が2以上ある場合は個数を1つ減らす
         if (!lastItem.isPriced && lastItem.quantity > 1) {
             lastItem.quantity--;
         } else {
-            // 数量が1、または既に金額確定済みの場合は行ごと丸々消す
             cartItems.pop(); 
         }
-        
         clearInput();    
         renderReceipt(); 
+    }
+}
+
+// ==========================================
+// 5. お会計ページへの遷移処理
+// ==========================================
+function goToCheckout() {
+    if (cartItems.length === 0) {
+        alert('商品が登録されていません！');
+        return;
+    }
+
+    const unpricedItem = cartItems.find(item => !item.isPriced);
+    if (unpricedItem) {
+        alert('金額が「決定」されていない商品があります！');
+        return;
+    }
+
+    const totalStr = totalElement ? totalElement.innerText : "0";
+    const isConfirm = confirm(`合計金額は ￥${totalStr} です。\nお会計画面に進みますか？`);
+    
+    if (isConfirm) {
+        window.location.href = 'check_v1.1.html';
     }
 }
