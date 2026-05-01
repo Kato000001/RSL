@@ -93,11 +93,13 @@ function applyDefaultPrice() {
     if (cartItems.length === 0) return;
     const lastItem = cartItems[cartItems.length - 1];
     
-    // 金額が未確定なら、商品のデフォルト価格を「単価」としてセット
+    // 金額が未確定なら、商品のデフォルト価格を「入力中金額」に表示するだけ！（ここではまだ確定させない）
     if (!lastItem.isPriced) {
-        lastItem.unitPrice = lastItem.defaultUnitPrice;
-        lastItem.isPriced = true;
-        renderReceipt();
+        currentInputValue = lastItem.defaultUnitPrice.toString();
+        updateInputDisplay();
+        
+        // もしこの後「やっぱり手入力にする」とテンキーを押した場合、数字が綺麗に上書きされるようにする
+        needResetInput = true; 
     }
 }
 
