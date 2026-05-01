@@ -68,6 +68,7 @@
     const errorMsg = document.getElementById('error-msg');
     let currentPass = "";
 
+    // テンキー入力処理
     function pressNum(num) {
       errorMsg.classList.add('invisible');
       if (currentPass.length < 4) {
@@ -76,16 +77,42 @@
       }
     }
 
+    // 消去処理
     function clearPass() {
       currentPass = "";
       passInput.value = "";
       errorMsg.classList.add('invisible');
     }
 
-    function login() {
+    // ログイン処理（DB連携版）
+    async function login() {
       if (currentPass.length === 4) {
-        window.location.href = "mastermenu.html";
+        try {
+          const response = await fetch('../../backend/api/admin_login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: currentPass })
+          });
+
+          const result = await response.json();
+          console.log("サーバーからの返答:", result); // デバッグ用
+
+          if (result.success) {
+            console.log("ログイン成功！移動します。");
+            // もし mastermenu.html が同じ administrator フォルダ内にあるならこれでOK
+            window.location.href = "mastermenu.html"; 
+          } else {
+            alert("ログイン失敗: " + result.message); // エラーをアラートで出す
+            errorMsg.textContent = result.message;
+            errorMsg.classList.remove('invisible');
+            clearPass();
+          }
+        } catch (error) {
+          console.error("通信エラー詳細:", error);
+          alert("通信に失敗しました。詳細はコンソールを確認してください。");
+        }
       } else {
+        errorMsg.textContent = "4桁の数字を入力してください";
         errorMsg.classList.remove('invisible');
       }
     }
