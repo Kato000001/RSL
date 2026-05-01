@@ -216,3 +216,30 @@ function removeLastItem() {
         renderReceipt(); 
     }
 }
+
+// ==========================================
+// 5. お会計ページへの遷移処理
+// ==========================================
+function goToCheckout() {
+    // ① 商品が1つも入っていない場合のチェック
+    if (cartItems.length === 0) {
+        alert('商品が登録されていません！');
+        return;
+    }
+
+    // ② まだ金額が「決定」されていない（---）商品がある場合のチェック
+    const unpricedItem = cartItems.find(item => !item.isPriced);
+    if (unpricedItem) {
+        alert('金額が「決定」されていない商品があります！\nテンキーで入力するか、定額を押して決定してください。');
+        return;
+    }
+
+    // ③ すべてOKなら確認メッセージを出す
+    const totalAmount = document.getElementById('total-display').innerText;
+    const isConfirm = confirm(`合計金額は ￥${totalAmount} です。\nお会計画面に進みますか？`);
+    
+    if (isConfirm) {
+        // 「OK」が押されたら、次のページ（check_v1.1.html）へ移動する
+        window.location.href = 'check_v1.1.html';
+    }
+}
