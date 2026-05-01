@@ -3,114 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>野菜屋レジ 管理者用メニュー画面</title>
+  <title>管理者用メニュー - 紫テーマ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-100 h-screen w-screen flex flex-col font-sans select-none overflow-hidden text-gray-800">
+<body class="bg-purple-50 h-screen w-screen flex flex-col font-sans select-none overflow-hidden text-gray-800">
 
-  <header class="bg-slate-800 p-3 flex justify-between items-center shrink-0 shadow-md text-white">
+  <header class="bg-purple-900 p-3 flex justify-between items-center shrink-0 shadow-md text-white">
     <div class="flex items-center space-x-3">
-      <div class="w-8 h-8 bg-slate-600 rounded flex items-center justify-center font-bold">管</div>
+      <div class="w-8 h-8 bg-purple-600 rounded flex items-center justify-center font-bold text-white shadow-inner">管</div>
       <span class="text-lg font-bold tracking-tighter">新鮮野菜 産直ポス - 管理システム</span>
     </div>
     <div class="flex items-center space-x-6">
-      <div class="text-right border-r pr-6 border-slate-600">
-        <span id="current-date" class="text-slate-400 text-xs block">----/--/-- (-)</span>
-        <span id="current-time" class="text-xl font-mono font-bold text-slate-100">--:--:--</span>
+      <div class="text-right border-r pr-6 border-purple-700">
+        <span id="current-date" class="text-purple-300 text-xs block">----/--/-- (-)</span>
+        <span id="current-time" class="text-xl font-mono font-bold text-white">--:--:--</span>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="text-sm bg-slate-700 px-3 py-1 rounded-full text-slate-200 border border-slate-600">
-          ログイン中：店主 (管理者)
-        </div>
-        <a href="../index.html" id="btn-logout" class="bg-red-700 hover:bg-red-600 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow decoration-none">ログアウト</a>
-      </div>
+      <a href="index.html" class="bg-rose-600 hover:bg-rose-700 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg active:scale-95 no-underline text-white">
+        ログアウト
+      </a>
     </div>
   </header>
 
-  <main class="flex-grow flex flex-col items-center p-8 overflow-y-auto custom-scrollbar">
+  <main class="flex-grow flex flex-col items-center justify-center p-6">
     
-    <div class="w-full max-w-5xl">
-      <div class="border-b-2 border-slate-300 pb-4 mb-8 flex justify-between items-end">
-        <h1 class="text-3xl font-black text-slate-700 tracking-wider">管理者用メニュー</h1>
-        <p class="text-slate-500 font-bold">実行したい業務を選択してください</p>
-      </div>
-
-      <div class="grid grid-cols-3 gap-6">
-        <a href="data.html" class="bg-white hover:bg-blue-50 border border-slate-200 active:scale-95 transition-all duration-150 rounded-2xl shadow-md p-8 flex flex-col items-center justify-center group border-b-8 border-blue-600 decoration-none">
-          <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <span class="text-2xl font-bold text-slate-800">売り上げの表示</span>
-          <span class="text-slate-500 mt-1 text-sm">日ごと・月ごとの確認</span>
-        </a>
-
-        <button class="bg-white hover:bg-blue-50 border border-slate-200 active:scale-95 transition-all duration-150 rounded-2xl shadow-md p-8 flex flex-col items-center justify-center group border-b-8 border-blue-600">
-          <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <span class="text-2xl font-bold text-slate-800">レジ金確認・変更</span>
-          <span class="text-slate-500 mt-1 text-sm">ドロワー内金額の調整</span>
-        </button>
-
-        <button class="bg-white hover:bg-rose-50 border border-slate-200 active:scale-95 transition-all duration-150 rounded-2xl shadow-md p-8 flex flex-col items-center justify-center group border-b-8 border-rose-600">
-          <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-rose-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-rose-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
-            </svg>
-          </div>
-          <span class="text-2xl font-bold text-slate-800">返金処理</span>
-          <span class="text-slate-500 mt-1 text-sm">返品・取り消しの対応</span>
-        </button>
-
-        <button class="bg-white hover:bg-emerald-50 border border-slate-200 active:scale-95 transition-all duration-150 rounded-2xl shadow-md p-8 flex flex-col items-center justify-center group border-b-8 border-emerald-600">
-          <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-emerald-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          </div>
-          <span class="text-2xl font-bold text-slate-800">商品登録・価格変更</span>
-          <span class="text-slate-500 mt-1 text-sm">新商品や特売価格の設定</span>
-        </button>
-
-        <button class="bg-white hover:bg-purple-50 border border-slate-200 active:scale-95 transition-all duration-150 rounded-2xl shadow-md p-8 flex flex-col items-center justify-center group border-b-8 border-purple-600">
-          <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <span class="text-2xl font-bold text-slate-800">税率変更</span>
-          <span class="text-slate-500 mt-1 text-sm">消費税や軽減税率の管理</span>
-        </button>
-
-        <button class="bg-white hover:bg-slate-100 border border-slate-200 active:scale-95 transition-all duration-150 rounded-2xl shadow-md p-8 flex flex-col items-center justify-center group border-b-8 border-slate-400">
-          <div class="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mb-4 group-hover:bg-slate-300 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <span class="text-2xl font-bold text-slate-800">パスワード変更</span>
-          <span class="text-slate-500 mt-1 text-sm">管理者用パスワードの更新</span>
-        </button>
-
-      </div>
+    <div class="mb-10 text-center">
+      <h2 class="text-4xl font-black text-purple-900 tracking-tight">管理メニュー</h2>
+      <p class="text-purple-500 font-bold mt-2">実行する操作を選択してください</p>
     </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+      
+      <a href="data.html" class="bg-white hover:bg-purple-50 border border-purple-100 active:scale-95 transition-all duration-150 rounded-3xl shadow-xl p-10 flex flex-col items-center justify-center group border-b-8 border-purple-600 no-underline">
+        <div class="w-24 h-24 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-200 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <span class="text-2xl font-black text-purple-900">売上表示</span>
+        <span class="text-purple-400 mt-2 text-sm font-bold">本日の売上・取引履歴の確認</span>
+      </a>
+
+      <button onclick="alert('商品管理画面（開発中）へ遷移します')" class="bg-white hover:bg-purple-50 border border-purple-100 active:scale-95 transition-all duration-150 rounded-3xl shadow-xl p-10 flex flex-col items-center justify-center group border-b-8 border-indigo-500">
+        <div class="w-24 h-24 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-100 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </div>
+        <span class="text-2xl font-black text-purple-900">商品登録・価格変更</span>
+        <span class="text-purple-400 mt-2 text-sm font-bold">マスタ情報の編集・単価の設定</span>
+      </button>
+
+    </div>
+
   </main>
 
-  <footer class="bg-slate-900 text-slate-300 p-3 flex justify-between px-10 shrink-0 border-t border-slate-700">
-    <div class="flex items-center space-x-6 text-sm">
-      <div class="flex items-center">
-        <span class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-        <span>管理モード実行中</span>
-      </div>
+  <footer class="bg-purple-900 text-purple-300 p-3 text-xs flex justify-between px-8 shrink-0">
+    <div class="flex items-center">
+        <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+        ログイン中：管理者（店主）
     </div>
-    <div class="text-slate-500 text-xs">
-      Settings & Administration Mode
-    </div>
+    <div class="font-mono">System Version 1.1 (Purple Edition)</div>
   </footer>
 
   <script src="script.js"></script>
