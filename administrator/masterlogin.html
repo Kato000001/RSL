@@ -6,7 +6,6 @@
   <title>管理者ログイン - 野菜屋レジ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* ドットを表示するためのフォント設定（必要に応じて） */
     .password-display {
       letter-spacing: 0.5em;
     }
@@ -32,7 +31,7 @@
           class="w-full bg-purple-50 border-2 border-purple-200 rounded-xl py-4 px-6 text-center text-3xl password-display focus:outline-none focus:border-purple-600 transition-colors text-purple-900 placeholder-purple-200">
         <span class="absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-purple-400">PASSWORD</span>
       </div>
-      <p id="error-msg" class="text-rose-500 text-center text-sm font-bold mt-2 invisible">パスワードが正しくありません</p>
+      <p id="error-msg" class="text-rose-500 text-center text-sm font-bold mt-2 invisible">4桁の数字を入力してください</p>
     </div>
 
     <div class="grid grid-cols-3 gap-3 mb-8">
@@ -54,7 +53,7 @@
     </div>
 
     <div class="flex justify-center border-t border-purple-100 pt-6">
-      <a href="index.html" class="flex items-center text-purple-400 hover:text-purple-700 font-bold transition-colors group no-underline">
+      <a href="../index.html" class="flex items-center text-purple-400 hover:text-purple-700 font-bold transition-colors group no-underline">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -64,42 +63,29 @@
 
   </div>
 
-  <div class="mt-8 text-purple-400 text-xs font-bold tracking-widest uppercase">
-    System Administration Terminal v1.1
-  </div>
-
   <script>
     const passInput = document.getElementById('pass-input');
     const errorMsg = document.getElementById('error-msg');
     let currentPass = "";
 
-    // 数字ボタンを押した時の処理
     function pressNum(num) {
-      errorMsg.classList.add('invisible'); // 入力し始めたらエラーを隠す
-      
+      errorMsg.classList.add('invisible');
       if (currentPass.length < 4) {
         currentPass += num;
         passInput.value = currentPass;
       }
     }
 
-    // 消去ボタンを押した時の処理
     function clearPass() {
       currentPass = "";
       passInput.value = "";
       errorMsg.classList.add('invisible');
     }
 
-    // 確定ボタンを押した時の処理
     function login() {
-      // 4桁入力されているかチェック
       if (currentPass.length === 4) {
-        // ログイン成功（現在は4桁なら何でもOKという仕様）
-        // 実際にはここでパスワード照合を行います
         window.location.href = "mastermenu.html";
       } else {
-        // 4桁未満の場合はエラー表示
-        errorMsg.textContent = "4桁の数字を入力してください";
         errorMsg.classList.remove('invisible');
       }
     }
