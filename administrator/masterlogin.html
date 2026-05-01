@@ -5,51 +5,105 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理者ログイン - 野菜屋レジ</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ドットを表示するためのフォント設定（必要に応じて） */
+    .password-display {
+      letter-spacing: 0.5em;
+    }
+  </style>
 </head>
-<body class="bg-slate-200 h-screen flex flex-col items-center justify-center font-sans select-none overflow-hidden">
+<body class="bg-purple-100 h-screen flex flex-col items-center justify-center font-sans select-none overflow-hidden text-gray-800">
 
-  <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-300">
+  <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-purple-200">
     
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-black text-slate-800 tracking-tighter">管理者ログイン</h1> <p class="text-slate-500 text-sm mt-2 font-bold">パスワードを入力してください</p>
+      <div class="w-16 h-16 bg-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h1 class="text-3xl font-black text-purple-900 tracking-tighter">管理者ログイン</h1>
+      <p class="text-purple-600 text-sm mt-2 font-bold">パスワードを入力してください</p>
     </div>
 
     <div class="mb-6">
       <div class="relative">
-        <input type="password" readonly placeholder="****" 
-          class="w-full bg-slate-100 border-2 border-slate-300 rounded-xl py-4 px-6 text-center text-3xl tracking-[1em] focus:outline-none focus:border-slate-800 transition-colors">
-        <span class="absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-400">パスワード入力</span> </div>
+        <input id="pass-input" type="password" readonly placeholder="****" 
+          class="w-full bg-purple-50 border-2 border-purple-200 rounded-xl py-4 px-6 text-center text-3xl password-display focus:outline-none focus:border-purple-600 transition-colors text-purple-900 placeholder-purple-200">
+        <span class="absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-purple-400">PASSWORD</span>
+      </div>
+      <p id="error-msg" class="text-rose-500 text-center text-sm font-bold mt-2 invisible">パスワードが正しくありません</p>
     </div>
 
     <div class="grid grid-cols-3 gap-3 mb-8">
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">7</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">8</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">9</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">4</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">5</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">6</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">1</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">2</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">3</button>
-      <button class="bg-rose-100 hover:bg-rose-200 text-rose-700 py-4 rounded-xl text-xl font-bold border-b-4 border-rose-300 transition-all">消去</button>
-      <button class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 py-4 rounded-xl text-2xl font-bold border-b-4 border-slate-300 transition-all">0</button>
-      <a href="mastermenu.html" class="block text-center bg-slate-800 hover:bg-slate-700 text-white py-4 rounded-xl text-xl font-bold border-b-4 border-slate-950 transition-all shadow-lg active:translate-y-1 active:border-b-0 decoration-none">ログイン</a>
+      <button onclick="pressNum('7')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">7</button>
+      <button onclick="pressNum('8')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">8</button>
+      <button onclick="pressNum('9')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">9</button>
+      
+      <button onclick="pressNum('4')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">4</button>
+      <button onclick="pressNum('5')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">5</button>
+      <button onclick="pressNum('6')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">6</button>
+      
+      <button onclick="pressNum('1')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">1</button>
+      <button onclick="pressNum('2')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">2</button>
+      <button onclick="pressNum('3')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">3</button>
+      
+      <button onclick="clearPass()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 py-4 rounded-xl text-xl font-bold border-b-4 border-rose-200 transition-all">消去</button>
+      <button onclick="pressNum('0')" class="bg-purple-50 hover:bg-purple-100 active:bg-purple-200 py-4 rounded-xl text-2xl font-bold border-b-4 border-purple-200 transition-all text-purple-800">0</button>
+      <button onclick="login()" class="bg-purple-700 hover:bg-purple-800 text-white py-4 rounded-xl text-xl font-bold border-b-4 border-purple-900 transition-all shadow-lg active:translate-y-1 active:border-b-0">確定</button>
     </div>
 
-    <div class="flex justify-center border-t border-slate-200 pt-6">
-      <a href="../index.html" class="flex items-center text-slate-500 hover:text-slate-800 font-bold transition-colors decoration-none">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-          </svg>
-          ホームへ戻る
+    <div class="flex justify-center border-t border-purple-100 pt-6">
+      <a href="index.html" class="flex items-center text-purple-400 hover:text-purple-700 font-bold transition-colors group no-underline">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        ホーム画面に戻る
       </a>
     </div>
 
   </div>
 
-  <div class="mt-8 text-slate-400 text-xs">
-    © 2024 Fresh Veggie POS System - Administration Mode
+  <div class="mt-8 text-purple-400 text-xs font-bold tracking-widest uppercase">
+    System Administration Terminal v1.1
   </div>
+
+  <script>
+    const passInput = document.getElementById('pass-input');
+    const errorMsg = document.getElementById('error-msg');
+    let currentPass = "";
+
+    // 数字ボタンを押した時の処理
+    function pressNum(num) {
+      errorMsg.classList.add('invisible'); // 入力し始めたらエラーを隠す
+      
+      if (currentPass.length < 4) {
+        currentPass += num;
+        passInput.value = currentPass;
+      }
+    }
+
+    // 消去ボタンを押した時の処理
+    function clearPass() {
+      currentPass = "";
+      passInput.value = "";
+      errorMsg.classList.add('invisible');
+    }
+
+    // 確定ボタンを押した時の処理
+    function login() {
+      // 4桁入力されているかチェック
+      if (currentPass.length === 4) {
+        // ログイン成功（現在は4桁なら何でもOKという仕様）
+        // 実際にはここでパスワード照合を行います
+        window.location.href = "mastermenu.html";
+      } else {
+        // 4桁未満の場合はエラー表示
+        errorMsg.textContent = "4桁の数字を入力してください";
+        errorMsg.classList.remove('invisible');
+      }
+    }
+  </script>
 
 </body>
 </html>
