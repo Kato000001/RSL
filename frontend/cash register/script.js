@@ -518,57 +518,34 @@ function setTenderedAmount() {
     document.getElementById('product-area').classList.add('lock-overlay');
     document.getElementById('price-summary').classList.add('active-summary');
     document.getElementById('mode-badge').innerText = 'お預り金入力中';
+
+    // 【追加】決定ボタンをオレンジから青に変更
+    const confirmBtn = document.getElementById('btn-confirm');
+    if (confirmBtn) {
+        // bg-orange-500 を bg-blue-600 に、border-orange-700 を border-blue-800 に置換
+        confirmBtn.classList.replace('bg-orange-500', 'bg-blue-600');
+        confirmBtn.classList.replace('border-orange-700', 'border-blue-800');
+        confirmBtn.classList.replace('hover:bg-orange-600', 'hover:bg-blue-700');
+    }
 }
 
 // ==========================================
-// 上書き：決定ボタンを押した時の処理
+// 追加：UIを元に戻すヘルパー関数
 // ==========================================
-function confirmPrice() {
-    const inputNumValue = parseInt(currentInputValue);
+function resetTenderUI() {
+    const productArea = document.getElementById('product-area');
+    const priceSummary = document.getElementById('price-summary');
+    const modeBadge = document.getElementById('mode-badge');
+    
+    if(productArea) productArea.classList.remove('lock-overlay');
+    if(priceSummary) priceSummary.classList.remove('active-summary');
+    if(modeBadge) modeBadge.innerText = '入力中金額';
 
-    if (isTenderMode) {
-        amountTendered = inputNumValue;
-        isTenderMode = false; 
-        needResetInput = true;
-        renderReceipt();      
-        updateInputDisplay(); 
-        
-        // UIを元の状態に戻す
-        resetTenderUI();
-        return;
+    // 【追加】決定ボタンを青から元のオレンジに戻す
+    const confirmBtn = document.getElementById('btn-confirm');
+    if (confirmBtn) {
+        confirmBtn.classList.replace('bg-blue-600', 'bg-orange-500');
+        confirmBtn.classList.replace('border-blue-800', 'border-orange-700');
+        confirmBtn.classList.replace('hover:bg-blue-700', 'hover:bg-orange-600');
     }
-
-    if (inputNumValue <= 0) return;
-
-    // ...以降の既存のconfirmPriceの処理はそのまま残す
-    if (cartItems.length > 0) {
-        const lastItem = cartItems[cartItems.length - 1];
-        if (!lastItem.isPriced) {
-            lastItem.unitPrice = inputNumValue;
-            lastItem.isPriced = true;
-            needResetInput = true;
-            renderReceipt();
-            return;
-        }
-    }
-
-    cartItems.push({ 
-        name: '手入力商品', 
-        defaultUnitPrice: inputNumValue, 
-        unitPrice: inputNumValue, 
-        quantity: 1,
-        isPriced: true 
-    });
-    needResetInput = true;
-    renderReceipt();
-}
-
-// ==========================================
-// 上書き：「入力クリア」や「全取消」の対応
-// ==========================================
-function clearInput() {
-    currentInputValue = '0';
-    isTenderMode = false; 
-    updateInputDisplay();
-    resetTenderUI(); // ここにもリセットを追加
 }

@@ -39,3 +39,4 @@ document.getElementById('admin-btn').addEventListener('click', () => {
     // 実際にはここに、パスワード入力画面の表示などを書きます
     alert('管理者メニューを開きます（現在準備中）');
 });
+
