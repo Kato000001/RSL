@@ -117,17 +117,71 @@
   </footer>
 
   <script>
+    // ページが開いた瞬間に「今日(daily)」のデータを読み込む
+    window.onload = () => {
+      loadSalesData('daily');
+    };
+
+    // データベースからデータを取ってきて画面を書き換える関数
+    async function loadSalesData(period) {
+      try {
+        // 1. PHPにデータをリクエストする（※パスは環境に合わせて調整してください）
+        const response = await fetch(`../../backend/api/get_sales_data.php?period=${period}`);
+        const data = await response.json();
+
+        // エラーがあればコンソールに出して止める
+        if (!data.success) {
+          console.error("データ取得エラー:", data.error);
+          return;
+        }
+
+        // 2. サマリー（上の4つのカード）の数字を書き換える
+        const summaryElements = document.querySelectorAll('.text-4xl.font-black.text-slate-800');
+        summaryElements[0].textContent = `¥ ${data.summary.sales}`; // 本日合計売上
+        summaryElements[1].innerHTML = `${data.summary.count} <span class="text-lg font-bold text-slate-400">名</span>`; // 客数
+        summaryElements[2].textContent = `¥ ${data.summary.average}`; // 客単価
+        // （※目標達成率は今回ダミーのままにしています）
+
+        // 3. 取引履歴テーブル（下の一覧）を書き換える
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = ''; // 最初から入っているダミーの行を全部消す
+
+        // PHPから届いたデータ(details)を1行ずつテーブルに追加する
+        data.details.forEach(item => {
+          // 時刻の文字を見やすくする（例: "2024-05-20 14:32:10" → "14:32:10"）
+          const timeOnly = item.time.split(' ')[1];
+
+          const rowHTML = `
+            <tr class="hover:bg-purple-50/50 transition-colors border-b border-purple-50">
+              <td class="py-4 px-2 text-slate-400 font-mono text-sm">${timeOnly}</td>
+              <td class="py-4 px-2 font-bold text-slate-800">${item.product_name}</td>
+              <td class="py-4 px-2 text-right text-slate-600">¥${item.price}</td>
+              <td class="py-4 px-2 text-center text-slate-600">${item.quantity}</td>
+              <td class="py-4 px-2 text-right text-slate-600">¥${item.subtotal}</td>
+              <td class="py-4 px-2 text-right font-black text-xl text-slate-800 border-l border-purple-50">¥${item.total_amount}</td>
+            </tr>
+          `;
+          tbody.insertAdjacentHTML('beforeend', rowHTML);
+        });
+
+      } catch (error) {
+        console.error("通信エラーが発生しました:", error);
+      }
+    }
+
+    // タブ（日別・週別など）を切り替える関数
     function switchTab(period) {
+      // 1. タブの色を変更する（デザイン処理）
       const tabs = document.querySelectorAll('.tab-btn');
       tabs.forEach(tab => {
         tab.classList.remove('bg-purple-700', 'text-white', 'shadow-md');
         tab.classList.add('text-purple-400', 'hover:bg-purple-50');
       });
-
       const activeTab = document.getElementById('tab-' + period);
       activeTab.classList.remove('text-purple-400', 'hover:bg-purple-50');
       activeTab.classList.add('bg-purple-700', 'text-white', 'shadow-md');
 
+      // 2. タイトルの文字を変更する
       const summaryTitle = document.getElementById('summary-title');
       const tableTitle = document.getElementById('table-title');
       
@@ -144,6 +198,9 @@
         </svg>
         ${prefix}の取引詳細
       `;
+
+      // 3. 選んだ期間のデータを新しく読み込み直す！
+      loadSalesData(period);
     }
   </script>
 </body>
