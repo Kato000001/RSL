@@ -13,3 +13,20 @@ body::-webkit-scrollbar {
 .transition-all {
     transition: all 0.3s ease;
 }
+
+/* 中央エリアのグレーアウト（無効化） */
+.lock-overlay {
+    pointer-events: none; /* クリック無効 */
+    filter: grayscale(100%) opacity(0.4); /* 白黒にして薄くする */
+    transition: all 0.3s ease;
+}
+
+/* 左下合計エリアの強調 */
+.active-summary {
+    transform: scale(1.02);
+    box-shadow: 0 -4px 20px rgba(59, 130, 246, 0.5); /* 青い光 */
+    border: 2px solid #3b82f6; /* 青枠 */
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+/* --- ここまで追加 --- */

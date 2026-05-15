@@ -5,10 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>野菜屋レジ - お会計画面</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 中央エリアのグレーアウト（無効化） */
+    .lock-overlay {
+        pointer-events: none; /* クリック無効 */
+        filter: grayscale(100%) opacity(0.4); /* 白黒にして薄くする */
+        transition: all 0.3s ease;
+    }
+
+    /* 左下合計エリアの強調 */
+    .active-summary {
+        transform: scale(1.02);
+        box-shadow: 0 -4px 20px rgba(59, 130, 246, 0.5); /* 青い光 */
+        border: 2px solid #3b82f6; /* 青枠 */
+        z-index: 10;
+        transition: all 0.3s ease;
+    }
+  </style>
 </head>
 <body class="bg-stone-100 h-screen w-screen flex flex-col font-sans select-none overflow-hidden text-gray-800">
 
-  <header class="bg-white border-b-2 border-green-600 p-3 flex justify-between items-center shrink-0 shadow-sm">
+ <header class="bg-white border-b-2 border-green-600 p-3 flex justify-between items-center shrink-0 shadow-sm">
     <div class="flex items-center space-x-3">
       <div class="w-8 h-8 bg-green-600 rounded flex items-center justify-center text-white font-bold">菜</div>
       <span class="text-lg font-bold text-gray-700 tracking-tighter">新鮮野菜 産直ポス</span>
@@ -37,9 +54,9 @@
       </div>
       
       <div id="receipt-list" class="flex-grow overflow-y-auto p-4 space-y-3 text-lg">
-      </div>
+        </div>
 
-      <div class="p-5 bg-gray-800 text-white space-y-2 shrink-0">
+      <div id="price-summary" class="p-5 bg-gray-800 text-white space-y-2 shrink-0 rounded-b-xl relative transition-all duration-300">
         <div class="flex justify-between items-center text-sm opacity-80">
           <div>税抜：<span id="subtotal-display" class="font-mono text-lg ml-1">0</span></div>
           <div>税込：<span id="tax-display" class="font-mono text-lg ml-1">0</span></div>
@@ -58,7 +75,7 @@
       </div>
     </section>
 
-    <section class="flex-[4] flex flex-col gap-3 min-w-0">
+    <section id="product-area" class="flex-[4] flex flex-col gap-3 min-w-0 transition-all duration-300">
       <div class="bg-white rounded-xl shadow-md border border-gray-300 flex-grow flex flex-col p-4 overflow-hidden">
         
         <div class="flex gap-4 mb-4 shrink-0">
@@ -120,9 +137,9 @@
 
     <section class="flex-[3] flex flex-col gap-3 min-w-0">
       
-      <div class="bg-white p-4 rounded-xl shadow-md border-4 border-green-500 relative shrink-0">
-        <span class="absolute -top-3 left-4 text-xs font-bold text-white bg-green-500 px-2 py-0.5 rounded">入力中金額</span>
-        <div id="input-display" class="text-right text-4xl font-mono font-bold text-gray-800">
+      <div id="input-container" class="bg-white p-4 rounded-xl shadow-md border-4 border-green-500 relative shrink-0 transition-colors duration-300">
+        <span id="mode-badge" class="absolute -top-3 left-4 text-xs font-bold text-white bg-green-500 px-2 py-0.5 rounded transition-colors duration-300">入力中金額</span>
+        <div id="input-display" class="text-right text-4xl font-mono font-bold text-gray-800 transition-colors duration-300">
           0
         </div>
       </div>
@@ -141,7 +158,7 @@
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('1')">1</button>
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('2')">2</button>
         <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('3')">3</button>
-        <button class="bg-orange-50 border-b-4 border-orange-200 active:border-b-0 active:translate-y-1 text-base font-bold rounded-xl shadow hover:bg-orange-100 text-orange-700 flex flex-col items-center justify-center leading-tight" onclick="removeLastItem()">1つ<br>取消</button>
+        <button class="bg-orange-50 border-b-4 border-orange-200 active:border-b-0 active:translate-y-1 text-base font-bold rounded-xl shadow hover:bg-orange-100 text-orange-700 flex flex-col items-center justify-center leading-tight" onclick="removeLastItem()">商品を1つ<br>取消</button>
 
        <button class="bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('0')">0</button>
         <button class="col-span-2 bg-white border-b-4 border-gray-300 active:border-b-0 active:translate-y-1 text-2xl font-bold rounded-xl shadow hover:bg-gray-50 flex items-center justify-center" onclick="inputNum('00')">00</button>
