@@ -275,9 +275,8 @@ function removeLastItem() {
         renderReceipt(); 
     }
 }
-
 // ==========================================
-// 5. お会計ページへの遷移処理
+// 5. お会計ページへの遷移処理 (LocalStorageへの保存)
 // ==========================================
 function goToCheckout() {
     if (cartItems.length === 0) {
@@ -291,10 +290,75 @@ function goToCheckout() {
         return;
     }
 
-    const totalStr = totalElement ? totalElement.innerText : "0";
-    const isConfirm = confirm(`合計金額は ￥${totalStr} です。\nお会計画面に進みますか？`);
+    // --- ここから：データをパッキングして倉庫(LocalStorage)に預ける処理 ---
+    let subtotal = 0;
+    cartItems.forEach(item => subtotal += (item.unitPrice * item.quantity));
+    const tax = Math.floor(subtotal * 0.08);
+    const total = subtotal + tax;
+    const change = amountTendered > 0 ? amountTendered - total : 0;
+
+    const now = new Date();
+    const timeString = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    // 「レシートデータ」という一つの荷物にまとめる
+    const receiptData = {
+        items: cartItems,
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        tendered: amountTendered,
+        change: change,
+        timestamp: timeString
+    };
+
+    // 倉庫(LocalStorage)に保存
+    localStorage.setItem('posReceiptData', JSON.stringify(receiptData));
+    // --- ここまで ---
+
+    const isConfirm = confirm(`合計金額は ￥${total.toLocaleString()} です。\nお会計画面に進みますか？`);
     
     if (isConfirm) {
-        window.location.href = 'check_v1.1.html';
+        window.location.href = 'check_v1.1.html'; // 計上画面のファイル名に合わせてください
     }
 }
+
+// ==========================================
+// 6. 計上画面が開いたときの処理（データの開封）
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // 計上画面にだけ存在するID（result-total）があるかチェック
+    const resultTotalEl = document.getElementById('result-total');
+    
+    if (resultTotalEl) {
+        // 倉庫からデータを取り出す
+        const dataStr = localStorage.getItem('posReceiptData');
+        if (!dataStr) return; // データが無ければ何もしない
+
+        const data = JSON.parse(dataStr);
+
+        // ① 大きな「お会計金額」に反映
+        resultTotalEl.innerText = data.total.toLocaleString();
+
+        // ② レシート内の商品リストを作成して反映
+        const itemsContainer = document.getElementById('result-items');
+        itemsContainer.innerHTML = '';
+        data.items.forEach(item => {
+            const itemTotal = item.unitPrice * item.quantity;
+            const qtyText = item.quantity > 1 ? `<span class="text-xs ml-1 bg-gray-200 px-1 rounded">x${item.quantity}</span>` : '';
+            itemsContainer.innerHTML += `
+                <div class="flex justify-between items-center mb-1">
+                    <span>${item.name}${qtyText}</span>
+                    <span>￥${itemTotal.toLocaleString()}</span>
+                </div>
+            `;
+        });
+
+        // ③ 各種金額と日時の反映
+        document.getElementById('result-subtotal').innerText = '￥' + data.subtotal.toLocaleString();
+        document.getElementById('result-tax').innerText = '￥' + data.tax.toLocaleString();
+        document.getElementById('result-receipt-total').innerText = '￥' + data.total.toLocaleString();
+        document.getElementById('result-tendered').innerText = '￥' + data.tendered.toLocaleString();
+        document.getElementById('result-change').innerText = '￥' + data.change.toLocaleString();
+        document.getElementById('result-datetime').innerText = '印字日時: ' + data.timestamp;
+    }
+});
