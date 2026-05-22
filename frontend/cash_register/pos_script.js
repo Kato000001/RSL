@@ -61,7 +61,7 @@ async function loadPOSProducts() {
 
 // ページ読み込み時の初期化処理
 document.addEventListener('DOMContentLoaded', () => {
-    // 💡 メインお会計画面（#product-area が存在するとき）のみ商品読み込みとフィルターを有効化
+    // メインお会計画面（#product-area が存在するとき）のみ商品読み込みとフィルターを有効化
     if (document.getElementById('product-area')) {
         loadPOSProducts(); 
         setupFilterEvents(); 
@@ -99,7 +99,7 @@ function renderProductGrid(filterKeyword) {
             }
         }
 
-        // ⭕ データベースの情報を元に、美しいグリーンのデザインボタンを生成
+        // データベースの情報を元に、美しいグリーンのデザインボタンを生成
         const card = document.createElement('button');
         card.className = "bg-green-50 hover:bg-green-100 border-2 border-green-200 active:border-green-400 active:scale-95 transition-all rounded-xl py-6 flex flex-col items-center justify-center gap-1";
         card.setAttribute("onclick", `addProduct('${product.name}', ${product.price})`);
@@ -159,6 +159,7 @@ function clearInput() {
     updateInputDisplay();
 }
 
+// テンキーの表示更新
 function updateInputDisplay() {
     const containerEl = document.getElementById('input-container');
     const badgeEl = document.getElementById('mode-badge');
@@ -396,7 +397,7 @@ function removeLastItem() {
 }
 
 // ==========================================
-// 5. ⭕ お会計ページへの遷移処理（完全データ同期版）
+// 5. ⭕ お会計ページへの遷移処理（ガードバリデーション強化）
 // ==========================================
 function goToCheckout() {
     if (cartItems.length === 0) {
@@ -414,12 +415,17 @@ function goToCheckout() {
     cartItems.forEach(item => subtotal += (item.unitPrice * item.quantity));
     const tax = Math.floor(subtotal * 0.08);
     const total = subtotal + tax;
-    const change = amountTendered > 0 ? amountTendered - total : 0;
+    
+    // 🛡️ 金額不足をここで絶対にブロックする（通常お会計ルート用）
+    if (amountTendered < total) {
+        alert(`【お預り金額不足】\nお会計の合計金額に達していません！\n\n合計税込金額: ￥${total.toLocaleString()}\n現在のお預り金: ￥${amountTendered.toLocaleString()}\n不足額: ￥${(total - amountTendered).toLocaleString()}`);
+        return;
+    }
 
+    const change = amountTendered - total;
     const now = new Date();
     const timeString = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-    // 💡 徹底追及の修正点：元の読み込みロジック（セクション6）が100%パースできるように純粋な数値を完全保存
     const receiptData = {
         items: cartItems,
         subtotal: subtotal,
@@ -459,17 +465,14 @@ function goToCheckout() {
         .then(result => {
             if (result.success) {
                 console.log('データベースへの登録が成功しました。');
-                // 確実に遷移を実行
                 window.location.href = 'check_v1.1.html'; 
             } else {
                 alert('売上データの保存に失敗しました: ' + (result.error || '不明なエラー'));
-                // データベース保存エラー時もローカルのレジ動作を止めないために遷移させる
                 window.location.href = 'check_v1.1.html';
             }
         })
         .catch(error => {
             console.error('通信エラーが発生しました:', error);
-            // オフラインなどのエラー時も、レジが停止しないよう画面遷移を実行
             window.location.href = 'check_v1.1.html';
         });
     }
@@ -603,13 +606,15 @@ function updateModalDisplay() {
     }
 }
 
+// ⭕ 金額不足決済バグを完全修正した決定ボタンロジック
 function submitPayment() {
     const tendered = parseInt(currentModalTendered) || 0;
     const modalTotalEl = document.getElementById('modal-total');
     const total = modalTotalEl ? (parseInt(modalTotalEl.innerText.replace(/,/g, '')) || 0) : 0;
 
+    // 🛡️ 修正点：ポップアップテンキー側でもお預り金が足りない場合は完全にブロック
     if (tendered < total) {
-        alert("お預り金額が不足しています。");
+        alert(`【お預り金額不足】\nお預り金が合計金額に達していません！\n\n合計税込金額: ￥${total.toLocaleString()}\n入力されたお預り金: ￥${tendered.toLocaleString()}\n不足額: ￥${(total - tendered).toLocaleString()}`);
         return;
     }
 
@@ -625,6 +630,6 @@ function submitPayment() {
     
     closePaymentModal();
     
-    // 💡 モーダルルートでも確実にデータが保存されて遷移するよう、直接 goToCheckout を呼び出す
+    // 正式なお会計関数（売上送信・データ書き込み処理）へ移る
     goToCheckout(); 
 }
