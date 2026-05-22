@@ -30,7 +30,6 @@ updateClock();
 const API_URL = '../../backend/api/products_api.php';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 要素の取得 ---
     const filterButtons = document.querySelectorAll('.filter-btn');
     const tbody = document.querySelector('.product-table tbody');
     const tableHeaders = document.querySelectorAll('.product-table th.sortable');
@@ -39,26 +38,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputName = document.querySelector('.input-text');
     const inputPrice = document.querySelector('.input-number');
     const seasonalCheckboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
-    const categoryRadios = document.querySelectorAll('.radio-group input[name="cat"]');
+    const categoryRadios = document.querySelectorAll('.radio-group input[type="radio"]');
     
     const submitBtn = document.querySelector('.btn-submit');
     const addBtn = document.querySelector('.btn-add');
     const deleteBtn = document.querySelector('.btn-delete'); 
     const clearBtn = document.querySelector('.btn-clear');
 
-    // タグクラス（色分け）定義
+    // ⭕ 元のデザインのタグクラス（色分け）定義
     const tagClassMap = {
         '春': 'tag-pink', '夏': 'tag-yellow', '秋': 'tag-orange', '冬': 'tag-blue',
-        '野菜': 'tag-green', '果物': 'tag-orange-light', 'その他': '', '通年': ''
+        '野菜': 'tag-green', '果物': 'tag-orange-light', '通年': '', '特売': 'tag-sale',
+        '旬の商品': 'tag-pink'
     };
 
     let currentSortCol = -1; 
     let isAscending = true;
 
-    // 起動時にデータベースから商品を読み込む
     loadProducts();
 
-    // --- 商品一覧をデータベースから読み込んで描画する関数 ---
+    // --- 1. 商品一覧を読み込んで描画する関数 ---
     async function loadProducts() {
         if (!tbody) return;
         try {
@@ -75,14 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = document.createElement('tr');
                 const formattedPrice = `¥${parseInt(product.price).toLocaleString()}`;
                 
-                // 種類（カテゴリ）のタグを生成
+                // ⭕ 種類（カテゴリ）のタグを生成
                 let tagsHTML = `<span class="tag ${tagClassMap[product.category] || ''}">${product.category}</span>`;
                 
-                // 季節の属性カラータグを生成
+                // ⭕ データベースから届いた「季節の属性（カンマ区切り）」をバラバラにしてそれぞれのカラータグを生成
                 if (product.seasonal_attributes) {
                     const attrs = product.seasonal_attributes.split(',');
                     attrs.forEach(attr => {
-                        if (attr && attr !== '通年') { 
+                        if (attr && attr !== '通年') { // 通年はタグなしデザインなので除外、それ以外は色付きタグに
                             const tagColorClass = tagClassMap[attr] || '';
                             tagsHTML += ` <span class="tag ${tagColorClass}">${attr}</span>`;
                         }
@@ -109,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 詳細反映機能 (行クリックしたときフォームに同期) ---
+    // --- 4. 詳細反映機能 (行クリックしたときフォームに同期) ---
     function attachDetailEvent(row, product) {
         row.addEventListener('click', () => {
             document.querySelectorAll('.product-table tbody tr').forEach(r => r.classList.remove('row-selected'));
@@ -119,13 +118,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (inputName) inputName.value = product.name;
             if (inputPrice) inputPrice.value = product.price;
             
-            // 種類（カテゴリ）ラジオボタンの同期
+            // カテゴリラジオボタンの同期
             categoryRadios.forEach(radio => {
                 const labelText = radio.parentElement.textContent.trim();
                 radio.checked = (labelText === product.category);
             });
 
-            // 季節の属性チェックボックスの同期
+            // ⭕ 季節の属性チェックボックスの同期
             const savedAttrs = product.seasonal_attributes ? product.seasonal_attributes.split(',') : [];
             seasonalCheckboxes.forEach(cb => {
                 const labelText = cb.parentElement.textContent.trim();
@@ -134,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 登録・変更確定ボタン ---
+    // --- 6. 登録・変更確定ボタン ---
     if (submitBtn) {
         submitBtn.addEventListener('click', async () => {
             const p_id = inputId.value.trim();
@@ -144,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let category = '';
             categoryRadios.forEach(r => { if(r.checked) category = r.parentElement.textContent.trim(); });
             
+            // ⭕ チェックがついている「季節の属性」をすべて配列に回収
             let selectedAttrs = [];
             seasonalCheckboxes.forEach(cb => {
                 if (cb.checked) {
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!p_id || !name || !price || !category) {
-                alert('商品ID、商品名、単価、種類（カテゴリ）をすべて選択・入力してください。');
+                alert('商品ID、商品名、単価、カテゴリをすべて選択・入力してください。');
                 return;
             }
 
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: name,
                 price: parseInt(price, 10),
                 category: category,
-                seasonal_attributes: selectedAttrs
+                seasonal_attributes: selectedAttrs // ⭕ 配列として送信
             };
 
             try {
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 新規登録ボタン ---
+    // --- 5. 新規登録ボタン ---
     if (addBtn) {
         addBtn.addEventListener('click', () => {
             const rows = Array.from(document.querySelectorAll('.product-table tbody tr'));
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 削除ボタンの処理 ---
+    // --- 7. 削除ボタンの処理 ---
     if (deleteBtn) {
         deleteBtn.addEventListener('click', async () => {
             const p_id = inputId.value.trim();
@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- クリア機能 ---
+    // --- 8. クリア機能 ---
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             if (inputId) inputId.value = '';
@@ -251,18 +251,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- フィルタリング機能 ---
+    // --- 9. フィルタリング機能 ---
     filterButtons.forEach(button => {
         button.addEventListener('click', () => {
             filterButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            const kw = button.textContent.trim();
+            
+            // HTMLの data-filter 属性から識別用のキーワードを優先取得します
+            const kw = button.getAttribute('data-filter') || button.textContent.trim();
             
             document.querySelectorAll('.product-table tbody tr').forEach(row => {
                 if (kw === '全て') { row.style.display = ''; return; }
                 const attrCell = row.querySelector('.cell-attr');
                 if (attrCell) {
-                    row.style.display = attrCell.textContent.includes(kw) ? '' : 'none';
+                    const txt = attrCell.textContent;
+                    
+                    if (kw === '旬の商品') {
+                        row.style.display = (txt.includes('春') || txt.includes('夏') || txt.includes('秋') || txt.includes('冬') || txt.includes('特売')) ? '' : 'none';
+                    } else if (kw === '通年') {
+                        // 💡「通年」ボタンが押された時は、セル内に「春・夏・秋・冬」のいずれのタグテキストも含まれていない行を表示させます
+                        const hasSeason = ['春', '夏', '秋', '冬'].some(season => txt.includes(season));
+                        row.style.display = (!hasSeason) ? '' : 'none';
+                    } else {
+                        row.style.display = txt.includes(kw) ? '' : 'none';
+                    }
                 }
             });
         });
