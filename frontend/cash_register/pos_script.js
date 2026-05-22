@@ -37,6 +37,99 @@ const subtotalElement = document.getElementById('subtotal-display');
 const taxElement = document.getElementById('tax-display');
 const totalElement = document.getElementById('total-display');
 
+// ⭕ POS連動用：APIのURLと商品データ保持配列
+const API_URL = '../../backend/api/products_api.php';
+let productsData = []; 
+
+// ==========================================
+// ⭕ POS連動：データベースから商品を読み込む処理
+// ==========================================
+async function loadPOSProducts() {
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        if (data.success && data.products) {
+            productsData = data.products; // データを格納
+            renderProductGrid('全て');     // 初期表示として「全て」を描画
+        } else {
+            console.error('商品データの取得に失敗しました:', data.error);
+        }
+    } catch (error) {
+        console.error('商品データの通信エラー:', error);
+    }
+}
+
+// ページ読み込み時の初期化処理
+document.addEventListener('DOMContentLoaded', () => {
+    // 💡 メインお会計画面（#product-area が存在するとき）のみ商品読み込みとフィルターを有効化
+    if (document.getElementById('product-area')) {
+        loadPOSProducts(); 
+        setupFilterEvents(); 
+    }
+});
+
+// ==========================================
+// ⭕ POS連動：商品パネルグリッドの動的自動描画
+// ==========================================
+function renderProductGrid(filterKeyword) {
+    const productArea = document.getElementById('product-area');
+    if (!productArea) return;
+    
+    const filterContainer = document.getElementById('filter-container');
+    const grid = filterContainer ? filterContainer.nextElementSibling : null;
+    
+    if (!grid) return;
+    grid.innerHTML = ''; // 静的ボタンおよび前回の表示をクリア
+
+    productsData.forEach(product => {
+        const cat = product.category || 'その他';
+        const attrs = product.seasonal_attributes || '';
+
+        // 9列のフィルターボタンに応じた正確な絞り込み
+        if (filterKeyword !== '全て') {
+            if (filterKeyword === '通年') {
+                const hasSeason = ['春', '夏', '秋', '冬'].some(season => attrs.includes(season));
+                if (hasSeason && !attrs.includes('通年')) {
+                    return; 
+                }
+            } else {
+                if (cat !== filterKeyword && !attrs.split(',').includes(filterKeyword)) {
+                    return; 
+                }
+            }
+        }
+
+        // ⭕ データベースの情報を元に、美しいグリーンのデザインボタンを生成
+        const card = document.createElement('button');
+        card.className = "bg-green-50 hover:bg-green-100 border-2 border-green-200 active:border-green-400 active:scale-95 transition-all rounded-xl py-6 flex flex-col items-center justify-center gap-1";
+        card.setAttribute("onclick", `addProduct('${product.name}', ${product.price})`);
+
+        card.innerHTML = `
+          <span class="font-bold text-gray-800 text-lg">${product.name}</span>
+          <span class="text-sm font-mono text-gray-600">¥${parseInt(product.price).toLocaleString()}</span>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// ==========================================
+// ⭕ フィルターボタンのイベントセットアップ
+// ==========================================
+function setupFilterEvents() {
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            buttons.forEach(btn => {
+                btn.className = "filter-btn py-2 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 transition";
+            });
+            button.className = "filter-btn py-2 text-xs font-bold rounded-lg border border-emerald-600 bg-emerald-600 text-white shadow-sm transition";
+
+            const filterValue = button.getAttribute('data-filter') || button.textContent.trim();
+            renderProductGrid(filterValue);
+        });
+    });
+}
+
 // ==========================================
 // 1. テンキー関連の処理
 // ==========================================
@@ -57,7 +150,6 @@ function inputNum(num) {
     updateInputDisplay();
 }
 
-// テンキー内「C（クリア）」
 function clearInput() {
     currentInputValue = '0';
     if (isTenderMode) {
@@ -67,9 +159,6 @@ function clearInput() {
     updateInputDisplay();
 }
 
-/**
- * 入力表示と枠色の更新
- */
 function updateInputDisplay() {
     const containerEl = document.getElementById('input-container');
     const badgeEl = document.getElementById('mode-badge');
@@ -245,7 +334,7 @@ function renderReceipt() {
                 ${item.name} ${quantityBadge}
             </div>
             <div class="w-[25%] text-right font-mono text-gray-600 text-base">${unitPriceText}</div>
-            <div class="w-[25%] text-right font-mono font-bold ${nameColor}">${totalPriceText}</div>
+            <div class="w-[25%] text-right font-mono font-bold ${nameColor}">￥${totalPriceText}</div>
         `;
         receiptListElement.appendChild(row);
     });
@@ -307,7 +396,7 @@ function removeLastItem() {
 }
 
 // ==========================================
-// 5. お会計ページへの遷移処理
+// 5. ⭕ お会計ページへの遷移処理（完全データ同期版）
 // ==========================================
 function goToCheckout() {
     if (cartItems.length === 0) {
@@ -330,6 +419,7 @@ function goToCheckout() {
     const now = new Date();
     const timeString = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
+    // 💡 徹底追及の修正点：元の読み込みロジック（セクション6）が100%パースできるように純粋な数値を完全保存
     const receiptData = {
         items: cartItems,
         subtotal: subtotal,
@@ -341,7 +431,7 @@ function goToCheckout() {
     };
     localStorage.setItem('posReceiptData', JSON.stringify(receiptData));
 
-    // ⭕ 綺麗に整えた送信データを定義
+    // データベース（PHP）送信用の正しい構造データ
     const dbPayload = {
         total_amount: total,
         tax_amount: tax,
@@ -351,7 +441,7 @@ function goToCheckout() {
             name: item.name,
             price: item.unitPrice,
             qty: item.quantity,
-            subtotal: item.unitPrice * item.quantity // PHP側が求める小計を追加
+            subtotal: item.unitPrice * item.quantity
         }))
     };
 
@@ -363,26 +453,30 @@ function goToCheckout() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(dbPayload) // ⭕ 用意した正しいデータを送信
+            body: JSON.stringify(dbPayload)
         })
         .then(response => response.json())
         .then(result => {
             if (result.success) {
                 console.log('データベースへの登録が成功しました。');
+                // 確実に遷移を実行
                 window.location.href = 'check_v1.1.html'; 
             } else {
                 alert('売上データの保存に失敗しました: ' + (result.error || '不明なエラー'));
+                // データベース保存エラー時もローカルのレジ動作を止めないために遷移させる
+                window.location.href = 'check_v1.1.html';
             }
         })
         .catch(error => {
             console.error('通信エラーが発生しました:', error);
-            alert('サーバーとの通信に失敗しました。');
+            // オフラインなどのエラー時も、レジが停止しないよう画面遷移を実行
+            window.location.href = 'check_v1.1.html';
         });
     }
 }
 
 // ==========================================
-// 6. 計上画面が開いたときの処理
+// 6. 計上画面（check_v1.1.html）が開いたときの処理（元仕様）
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const resultTotalEl = document.getElementById('result-total');
@@ -530,5 +624,7 @@ function submitPayment() {
     localStorage.setItem('tendered', tendered);
     
     closePaymentModal();
+    
+    // 💡 モーダルルートでも確実にデータが保存されて遷移するよう、直接 goToCheckout を呼び出す
     goToCheckout(); 
 }
