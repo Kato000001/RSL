@@ -78,20 +78,16 @@
     <section id="product-area" class="flex-[4] flex flex-col gap-3 min-w-0 transition-all duration-300">
       <div class="bg-white rounded-xl shadow-md border border-gray-300 flex-grow flex flex-col p-4 overflow-hidden">
         
-        <div class="flex gap-4 mb-4 shrink-0">
-          <div class="grid grid-cols-2 gap-1.5 w-1/3 border-r border-gray-200 pr-4">
-            <button class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2 rounded-lg border border-stone-300 text-[10px] sm:text-xs transition-colors">全て</button>
-            <button class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2 rounded-lg border border-stone-300 text-[10px] sm:text-xs transition-colors">季節</button>
-            <button class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2 rounded-lg border border-stone-300 text-[10px] sm:text-xs transition-colors">通年</button>
-            <button class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2 rounded-lg border border-stone-300 text-[10px] sm:text-xs transition-colors">種類</button>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-1.5 flex-grow">
-            <button class="bg-green-600 text-white font-bold py-2 rounded-lg shadow-sm text-sm">野菜</button>
-            <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 rounded-lg border border-gray-300 transition-colors text-sm">果物</button>
-            <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 rounded-lg border border-gray-300 transition-colors text-sm">特売</button>
-            <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 rounded-lg border border-gray-300 transition-colors text-sm">その他</button>
-          </div>
+        <div class="grid grid-cols-4 gap-2 bg-slate-100 p-2 rounded-xl shrink-0">
+          <button class="filter-btn py-2 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition" data-filter="全て">全て</button>
+          <button class="filter-btn py-2 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition" data-filter="野菜">野菜</button>
+          <button class="filter-btn py-2 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition" data-filter="果物">果物</button>
+          <button class="filter-btn py-2 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition" data-filter="その他">その他</button>
+  
+          <button class="filter-btn py-2 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition" data-filter="春">春</button>
+          <button class="filter-btn py-2 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition" data-filter="夏">夏</button>
+          <button class="filter-btn py-2 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition" data-filter="秋">秋</button>
+          <button class="filter-btn py-2 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition" data-filter="冬">冬</button>
         </div>
 
         <div class="grid grid-cols-3 gap-3 overflow-y-auto content-start flex-grow pr-1">
