@@ -53,7 +53,7 @@
     </div>
 
     <div class="flex justify-center border-t border-purple-100 pt-6">
-      <a href="../index.html" class="flex items-center text-purple-400 hover:text-purple-700 font-bold transition-colors group no-underline">
+      <a href="../main_home.html" class="flex items-center text-purple-400 hover:text-purple-700 font-bold transition-colors group no-underline">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -100,7 +100,7 @@
           if (result.success) {
             console.log("ログイン成功！移動します。");
             // もし mastermenu.html が同じ administrator フォルダ内にあるならこれでOK
-            window.location.href = "mastermenu.html"; 
+            window.location.href = "A02_admin_home.html"; 
           } else {
             alert("ログイン失敗: " + result.message); // エラーをアラートで出す
             errorMsg.textContent = result.message;

@@ -150,6 +150,7 @@ function inputNum(num) {
     updateInputDisplay();
 }
 
+// 入力クリア
 function clearInput() {
     currentInputValue = '0';
     if (isTenderMode) {
@@ -397,7 +398,7 @@ function removeLastItem() {
 }
 
 // ==========================================
-// 5. ⭕ お会計ページへの遷移処理（ガードバリデーション強化）
+// 5. ⭕ お会計ページへの遷移処理（R02_accounting.htmlに完全連動）
 // ==========================================
 function goToCheckout() {
     if (cartItems.length === 0) {
@@ -416,7 +417,7 @@ function goToCheckout() {
     const tax = Math.floor(subtotal * 0.08);
     const total = subtotal + tax;
     
-    // 🛡️ 金額不足をここで絶対にブロックする（通常お会計ルート用）
+    // 金額不足のガードバリデーション
     if (amountTendered < total) {
         alert(`【お預り金額不足】\nお会計の合計金額に達していません！\n\n合計税込金額: ￥${total.toLocaleString()}\n現在のお預り金: ￥${amountTendered.toLocaleString()}\n不足額: ￥${(total - amountTendered).toLocaleString()}`);
         return;
@@ -465,21 +466,24 @@ function goToCheckout() {
         .then(result => {
             if (result.success) {
                 console.log('データベースへの登録が成功しました。');
-                window.location.href = 'check_v1.1.html'; 
+                // 💡 新しいお会計確認画面のファイル名「R02_accounting.html」に遷移
+                window.location.href = 'R02_accounting.html'; 
             } else {
                 alert('売上データの保存に失敗しました: ' + (result.error || '不明なエラー'));
-                window.location.href = 'check_v1.1.html';
+                // 💡 エラー時も「R02_accounting.html」に遷移
+                window.location.href = 'R02_accounting.html';
             }
         })
         .catch(error => {
             console.error('通信エラーが発生しました:', error);
-            window.location.href = 'check_v1.1.html';
+            // 💡 通信エラー時も「R02_accounting.html」に遷移
+            window.location.href = 'R02_accounting.html';
         });
     }
 }
 
 // ==========================================
-// 6. 計上画面（check_v1.1.html）が開いたときの処理（元仕様）
+// 6. ⭕ 計上画面（R02_accounting.html）が開いたときのデータ描画
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const resultTotalEl = document.getElementById('result-total');
@@ -606,13 +610,12 @@ function updateModalDisplay() {
     }
 }
 
-// ⭕ 金額不足決済バグを完全修正した決定ボタンロジック
 function submitPayment() {
     const tendered = parseInt(currentModalTendered) || 0;
     const modalTotalEl = document.getElementById('modal-total');
     const total = modalTotalEl ? (parseInt(modalTotalEl.innerText.replace(/,/g, '')) || 0) : 0;
 
-    // 🛡️ 修正点：ポップアップテンキー側でもお預り金が足りない場合は完全にブロック
+    // お預り金不足のブロック処理
     if (tendered < total) {
         alert(`【お預り金額不足】\nお預り金が合計金額に達していません！\n\n合計税込金額: ￥${total.toLocaleString()}\n入力されたお預り金: ￥${tendered.toLocaleString()}\n不足額: ￥${(total - tendered).toLocaleString()}`);
         return;
@@ -630,6 +633,6 @@ function submitPayment() {
     
     closePaymentModal();
     
-    // 正式なお会計関数（売上送信・データ書き込み処理）へ移る
+    // 正式なお会計関数（内部で R02_accounting.html へのジャンプ処理が走ります）
     goToCheckout(); 
 }
