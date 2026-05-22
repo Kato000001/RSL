@@ -8,7 +8,6 @@
 </head>
 <body class="admin-mode">
 
-    <!-- ヘッダー -->
     <header class="main-header">
         <div class="header-left">
             <div class="logo">管</div>
@@ -26,7 +25,6 @@
 
     <main class="main-container">
         
-        <!-- 左ペイン：商品一覧 -->
         <section class="inventory-section">
             <div class="filter-bar">
                 <span class="filter-label">フィルタリング:</span>
@@ -54,51 +52,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="cell-id">1</td>
-                                <td class="cell-name">キャベツ</td>
-                                <td class="cell-price">¥200</td>
-                                <td class="cell-attr">
-                                    <span class="tag">通年</span>
-                                    <span class="tag tag-pink">春</span>
-                                    <span class="tag tag-green">野菜</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="cell-id">2</td>
-                                <td class="cell-name">大根</td>
-                                <td class="cell-price">¥200</td>
-                                <td class="cell-attr">
-                                    <span class="tag tag-blue">冬</span>
-                                    <span class="tag tag-green">野菜</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="cell-id">3</td>
-                                <td class="cell-name">トマト</td>
-                                <td class="cell-price">¥200</td>
-                                <td class="cell-attr">
-                                    <span class="tag">通年</span>
-                                    <span class="tag tag-yellow">夏</span>
-                                    <span class="tag tag-green">野菜</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="cell-id">4</td>
-                                <td class="cell-name">りんご</td>
-                                <td class="cell-price">¥50</td>
-                                <td class="cell-attr">
-                                    <span class="tag tag-orange">秋</span>
-                                    <span class="tag tag-orange-light">果物</span>
-                                </td>
-                            </tr>
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <!-- 右ペイン：詳細フォーム -->
         <section class="editor-section">
             <div class="editor-card">
                 <div class="card-header">
@@ -107,7 +66,6 @@
                 </div>
                 
                 <div class="card-body custom-scrollbar">
-                    <!-- 基本情報 -->
                     <div class="form-group-row">
                         <label class="form-label">ID</label>
                         <input type="text" value="" class="input-field input-readonly" readonly>
@@ -124,16 +82,15 @@
                         </div>
                     </div>
 
-                    <!-- 属性選択 -->
                     <div class="attr-grid">
                         <div class="attr-box">
                             <span class="box-label">季節属性</span>
                             <div class="checkbox-group">
-                                <label><input type="checkbox" > 春</label>
-                                <label><input type="checkbox" > 夏</label>
-                                <label><input type="checkbox" > 秋</label>
-                                <label><input type="checkbox" > 冬</label>
-                                <label><input type="checkbox" > 通年</label>
+                                <label><input type="checkbox"> 春</label>
+                                <label><input type="checkbox"> 夏</label>
+                                <label><input type="checkbox"> 秋</label>
+                                <label><input type="checkbox"> 冬</label>
+                                <label><input type="checkbox"> 通年</label>
                             </div>
                         </div>
 
@@ -147,36 +104,13 @@
                         </div>
                     </div>
 
-                    <!-- 仕入れ履歴 -->
-                    <div class="history-section">
-                        <span class="section-label">仕入れ履歴</span>
-                        <div class="history-table-container">
-                            <table class="history-table">
-                                <thead>
-                                    <tr>
-                                        <th>生産者ID</th>
-                                        <th>生産者名前</th>
-                                        <th>仕入れ量</th>
-                                        <th>仕入れ日時</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td>P-101</td><td>佐藤農園</td><td class="text-right">150</td><td>2026/05/14 06:30</td></tr>
-                                    <tr><td>P-054</td><td>鈴木ファーム</td><td class="text-right">80</td><td>2026/05/12 07:15</td></tr>
-                                    <tr><td>P-101</td><td>佐藤農園</td><td class="text-right">100</td><td>2026/05/10 06:45</td></tr>
-                                    <tr><td>P-012</td><td>高橋青果</td><td class="text-right">200</td><td>2026/05/08 05:50</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
-                </div>
 
                 <div class="card-footer">
                     <button class="btn-action btn-add">新規追加</button>
                     <button class="btn-action btn-delete">削除</button>
                     <button class="btn-action btn-clear">クリア</button>
                     <button class="btn-action btn-submit">変更を決定</button>
-                    
                 </div>
             </div>
         </section>
@@ -186,6 +120,6 @@
         Administration Sales Report Mode - Fresh Veggie POS System
     </footer>
 
-    <script src="script.js"></script>
+    <script src="admin_script.js"></script>
 </body>
 </html>

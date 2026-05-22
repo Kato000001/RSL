@@ -21,7 +21,11 @@
       <span class="text-lg font-bold tracking-wider">新鮮野菜 産直ポス - 売上管理システム</span>
     </div>
     <div class="flex items-center space-x-4">
-      <span class="text-sm bg-purple-800/50 px-4 py-1.5 rounded-full text-purple-100 border border-purple-700">2024年5月20日(月) 接続中</span>
+      <div class="text-sm bg-purple-800/50 px-4 py-1.5 rounded-full text-purple-100 border border-purple-700 flex items-center font-mono tracking-wide">
+        <span id="header-date">2026/05/20 (水)</span>
+        <span id="header-time" class="ml-2 font-bold text-white">11:18:00</span>
+        <span class="text-xs text-purple-300 ml-2 pl-2 border-l border-purple-700/60">接続中</span>
+      </div>
       <a href="mastermenu.html" class="bg-purple-700 hover:bg-purple-600 active:bg-purple-800 active:scale-95 transition-all text-white text-sm font-bold px-5 py-2 rounded-lg shadow-sm no-underline flex items-center border border-purple-500">
         管理者メニューへ戻る
       </a>
@@ -39,26 +43,21 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-4 gap-6 mb-8 shrink-0">
+    <div class="grid grid-cols-3 gap-6 mb-8 shrink-0">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-purple-100 relative overflow-hidden">
         <div class="absolute left-0 top-0 bottom-0 w-2 bg-purple-600"></div>
         <p id="summary-title" class="text-purple-400 text-sm font-bold mb-2 uppercase tracking-wider">本日合計売上（税込）</p>
-        <p class="text-4xl font-black text-slate-800">¥ 124,857</p>
+        <p class="text-4xl font-black text-slate-800">¥ 0</p>
       </div>
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-purple-100 relative overflow-hidden">
         <div class="absolute left-0 top-0 bottom-0 w-2 bg-fuchsia-500"></div>
         <p class="text-purple-400 text-sm font-bold mb-2 uppercase tracking-wider">客数</p>
-        <p class="text-4xl font-black text-slate-800">142 <span class="text-lg font-bold text-slate-400">名</span></p>
+        <p class="text-4xl font-black text-slate-800">0 <span class="text-lg font-bold text-slate-400">名</span></p>
       </div>
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-purple-100 relative overflow-hidden">
         <div class="absolute left-0 top-0 bottom-0 w-2 bg-indigo-500"></div>
         <p class="text-purple-400 text-sm font-bold mb-2 uppercase tracking-wider">客単価</p>
-        <p class="text-4xl font-black text-slate-800">¥ 879</p>
-      </div>
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-purple-100 relative overflow-hidden">
-        <div class="absolute left-0 top-0 bottom-0 w-2 bg-pink-500"></div>
-        <p class="text-purple-400 text-sm font-bold mb-2 uppercase tracking-wider">目標達成率</p>
-        <p class="text-4xl font-black text-slate-800">83.2 <span class="text-lg font-bold text-slate-400">%</span></p>
+        <p class="text-4xl font-black text-slate-800">¥ 0</p>
       </div>
     </div>
 
@@ -70,10 +69,6 @@
           </svg>
           本日の取引詳細
         </h3>
-        <div class="flex space-x-3">
-          <button class="px-4 py-2 border border-purple-200 rounded-lg text-sm font-bold text-purple-600 hover:bg-purple-50 transition-colors">CSV出力</button>
-          <button class="px-4 py-2 border border-purple-200 rounded-lg text-sm font-bold text-purple-600 hover:bg-purple-50 transition-colors">印刷</button>
-        </div>
       </div>
       
       <div class="overflow-y-auto flex-grow custom-scrollbar p-6 pt-0">
@@ -89,23 +84,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-purple-50">
-            <tr class="hover:bg-purple-50/50 transition-colors">
-              <td class="py-4 px-2 text-slate-400 font-mono text-sm">14:32:10</td>
-              <td class="py-4 px-2 font-bold text-slate-800">バナナ</td>
-              <td class="py-4 px-2 text-right text-slate-600">¥500</td>
-              <td class="py-4 px-2 text-center text-slate-600">1</td>
-              <td class="py-4 px-2 text-right text-slate-600">¥500</td>
-              <td class="py-4 px-2 text-right font-black text-xl text-slate-800 border-l border-purple-50">¥550</td>
-            </tr>
-            <tr class="hover:bg-purple-50/50 transition-colors">
-              <td class="py-4 px-2 text-slate-400 font-mono text-sm">14:28:45</td>
-              <td class="py-4 px-2 font-bold text-slate-800">キャベツ</td>
-              <td class="py-4 px-2 text-right text-slate-600">¥200</td>
-              <td class="py-4 px-2 text-center text-slate-600">2</td>
-              <td class="py-4 px-2 text-right text-slate-600">¥400</td>
-              <td class="py-4 px-2 text-right font-black text-xl text-slate-800 border-l border-purple-50">¥440</td>
-            </tr>
-          </tbody>
+            </tbody>
         </table>
       </div>
     </div>
@@ -117,38 +96,53 @@
   </footer>
 
   <script>
-    // ページが開いた瞬間に「今日(daily)」のデータを読み込む
     window.onload = () => {
       loadSalesData('daily');
+      updateClock();
+      setInterval(updateClock, 1000);
     };
 
-    // データベースからデータを取ってきて画面を書き換える関数
+    function updateClock() {
+      const now = new Date();
+      
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+      const dayOfWeek = daysOfWeek[now.getDay()];
+      const dateString = `${year}/${month}/${day} (${dayOfWeek})`;
+      
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timeString = `${hours}:${minutes}:${seconds}`;
+      
+      const dateEl = document.getElementById('header-date');
+      const timeEl = document.getElementById('header-time');
+      
+      if (dateEl) dateEl.textContent = dateString;
+      if (timeEl) timeEl.textContent = timeString;
+    }
+
     async function loadSalesData(period) {
       try {
-        // 1. PHPにデータをリクエストする（※パスは環境に合わせて調整してください）
         const response = await fetch(`../../backend/api/get_sales_data.php?period=${period}`);
         const data = await response.json();
 
-        // エラーがあればコンソールに出して止める
         if (!data.success) {
           console.error("データ取得エラー:", data.error);
           return;
         }
 
-        // 2. サマリー（上の4つのカード）の数字を書き換える
         const summaryElements = document.querySelectorAll('.text-4xl.font-black.text-slate-800');
-        summaryElements[0].textContent = `¥ ${data.summary.sales}`; // 本日合計売上
-        summaryElements[1].innerHTML = `${data.summary.count} <span class="text-lg font-bold text-slate-400">名</span>`; // 客数
-        summaryElements[2].textContent = `¥ ${data.summary.average}`; // 客単価
-        // （※目標達成率は今回ダミーのままにしています）
+        summaryElements[0].textContent = `¥ ${data.summary.sales}`; 
+        summaryElements[1].innerHTML = `${data.summary.count} <span class="text-lg font-bold text-slate-400">名</span>`; 
+        summaryElements[2].textContent = `¥ ${data.summary.average}`; 
 
-        // 3. 取引履歴テーブル（下の一覧）を書き換える
         const tbody = document.querySelector('tbody');
-        tbody.innerHTML = ''; // 最初から入っているダミーの行を全部消す
+        tbody.innerHTML = ''; 
 
-        // PHPから届いたデータ(details)を1行ずつテーブルに追加する
         data.details.forEach(item => {
-          // 時刻の文字を見やすくする（例: "2024-05-20 14:32:10" → "14:32:10"）
           const timeOnly = item.time.split(' ')[1];
 
           const rowHTML = `
@@ -169,9 +163,7 @@
       }
     }
 
-    // タブ（日別・週別など）を切り替える関数
     function switchTab(period) {
-      // 1. タブの色を変更する（デザイン処理）
       const tabs = document.querySelectorAll('.tab-btn');
       tabs.forEach(tab => {
         tab.classList.remove('bg-purple-700', 'text-white', 'shadow-md');
@@ -181,7 +173,6 @@
       activeTab.classList.remove('text-purple-400', 'hover:bg-purple-50');
       activeTab.classList.add('bg-purple-700', 'text-white', 'shadow-md');
 
-      // 2. タイトルの文字を変更する
       const summaryTitle = document.getElementById('summary-title');
       const tableTitle = document.getElementById('table-title');
       
@@ -199,7 +190,6 @@
         ${prefix}の取引詳細
       `;
 
-      // 3. 選んだ期間のデータを新しく読み込み直す！
       loadSalesData(period);
     }
   </script>

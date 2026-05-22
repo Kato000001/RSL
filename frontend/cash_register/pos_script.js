@@ -57,9 +57,13 @@ function inputNum(num) {
     updateInputDisplay();
 }
 
+// テンキー内「C（クリア）」
 function clearInput() {
     currentInputValue = '0';
-    isTenderMode = false; 
+    if (isTenderMode) {
+        isTenderMode = false; 
+        resetTenderUI(); 
+    }
     updateInputDisplay();
 }
 
@@ -70,34 +74,22 @@ function updateInputDisplay() {
     const containerEl = document.getElementById('input-container');
     const badgeEl = document.getElementById('mode-badge');
 
-    // 数字の表示更新
     if (displayElement) {
         displayElement.innerText = Number(currentInputValue).toLocaleString();
     }
 
-    // 枠色とバッジの制御
-    if (containerEl) {
+    if (containerEl && badgeEl) {
         if (isTenderMode) {
-            // 【預り金モード】青系に変更
-            containerEl.classList.replace('bg-cyan-50', 'bg-blue-50');
-            containerEl.classList.replace('border-cyan-100', 'border-blue-500');
+            containerEl.classList.replace('border-green-500', 'border-blue-500');
+            badgeEl.classList.replace('bg-green-500', 'bg-blue-600');
             if (displayElement) {
-                displayElement.classList.replace('text-cyan-700', 'text-blue-700');
-            }
-            if (badgeEl) {
-                badgeEl.classList.replace('text-transparent', 'text-white');
-                badgeEl.classList.replace('bg-transparent', 'bg-blue-600');
+                displayElement.classList.replace('text-gray-800', 'text-blue-700');
             }
         } else {
-            // 【通常モード】元のシアンに戻す
-            containerEl.classList.replace('bg-blue-50', 'bg-cyan-50');
-            containerEl.classList.replace('border-blue-500', 'border-cyan-100');
+            containerEl.classList.replace('border-blue-500', 'border-green-500');
+            badgeEl.classList.replace('bg-blue-600', 'bg-green-500');
             if (displayElement) {
-                displayElement.classList.replace('text-blue-700', 'text-cyan-700');
-            }
-            if (badgeEl) {
-                badgeEl.classList.replace('text-white', 'text-transparent');
-                badgeEl.classList.replace('bg-blue-600', 'bg-transparent');
+                displayElement.classList.replace('text-blue-700', 'text-gray-800');
             }
         }
     }
@@ -106,12 +98,43 @@ function updateInputDisplay() {
 // ==========================================
 // 2. 預り金・商品追加・確定の処理
 // ==========================================
-
 function setTenderedAmount() {
     isTenderMode = true;     
     currentInputValue = '0'; 
-    updateInputDisplay();
     needResetInput = false;
+    updateInputDisplay();
+    
+    const productArea = document.getElementById('product-area');
+    const priceSummary = document.getElementById('price-summary');
+    const modeBadge = document.getElementById('mode-badge');
+
+    if (productArea) productArea.classList.add('lock-overlay');
+    if (priceSummary) priceSummary.classList.add('active-summary');
+    if (modeBadge) modeBadge.innerText = 'お預り金入力中';
+
+    const confirmBtn = document.getElementById('btn-confirm');
+    if (confirmBtn) {
+        confirmBtn.classList.replace('bg-orange-500', 'bg-blue-600');
+        confirmBtn.classList.replace('border-orange-700', 'border-blue-800');
+        confirmBtn.classList.replace('hover:bg-orange-600', 'hover:bg-blue-700');
+    }
+}
+
+function resetTenderUI() {
+    const productArea = document.getElementById('product-area');
+    const priceSummary = document.getElementById('price-summary');
+    const modeBadge = document.getElementById('mode-badge');
+    
+    if (productArea) productArea.classList.remove('lock-overlay');
+    if (priceSummary) priceSummary.classList.remove('active-summary');
+    if (modeBadge) modeBadge.innerText = '入力中金額';
+
+    const confirmBtn = document.getElementById('btn-confirm');
+    if (confirmBtn) {
+        confirmBtn.classList.replace('bg-blue-600', 'bg-orange-500');
+        confirmBtn.classList.replace('border-blue-800', 'border-orange-700');
+        confirmBtn.classList.replace('hover:bg-blue-700', 'hover:bg-orange-600');
+    }
 }
 
 function confirmPrice() {
@@ -122,7 +145,8 @@ function confirmPrice() {
         isTenderMode = false; 
         needResetInput = true;
         renderReceipt();      
-        updateInputDisplay(); // 枠色を元に戻すために呼び出し
+        resetTenderUI();      
+        updateInputDisplay(); 
         return;
     }
 
@@ -151,8 +175,11 @@ function confirmPrice() {
 }
 
 function addProduct(name, defaultPrice) {
-    isTenderMode = false; 
-    updateInputDisplay(); // モード解除に合わせて色を戻す
+    if (isTenderMode) {
+        isTenderMode = false; 
+        resetTenderUI();
+        updateInputDisplay(); 
+    }
 
     if (cartItems.length > 0) {
         const lastItem = cartItems[cartItems.length - 1];
@@ -254,7 +281,10 @@ function clearCart() {
         if (isConfirm) {
             cartItems = []; 
             amountTendered = 0;
-            isTenderMode = false;
+            if (isTenderMode) {
+                isTenderMode = false;
+                resetTenderUI();
+            }
             clearInput();   
             renderReceipt(); 
         }
@@ -275,8 +305,9 @@ function removeLastItem() {
         renderReceipt(); 
     }
 }
+
 // ==========================================
-// 5. お会計ページへの遷移処理 (LocalStorageへの保存)
+// 5. お会計ページへの遷移処理
 // ==========================================
 function goToCheckout() {
     if (cartItems.length === 0) {
@@ -290,7 +321,6 @@ function goToCheckout() {
         return;
     }
 
-    // --- ここから：データをパッキングして倉庫(LocalStorage)に預ける処理 ---
     let subtotal = 0;
     cartItems.forEach(item => subtotal += (item.unitPrice * item.quantity));
     const tax = Math.floor(subtotal * 0.08);
@@ -300,7 +330,6 @@ function goToCheckout() {
     const now = new Date();
     const timeString = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-    // 「レシートデータ」という一つの荷物にまとめる
     const receiptData = {
         items: cartItems,
         subtotal: subtotal,
@@ -310,96 +339,131 @@ function goToCheckout() {
         change: change,
         timestamp: timeString
     };
-
-    // 倉庫(LocalStorage)に保存
     localStorage.setItem('posReceiptData', JSON.stringify(receiptData));
-    // --- ここまで ---
+
+    // ⭕ 綺麗に整えた送信データを定義
+    const dbPayload = {
+        total_amount: total,
+        tax_amount: tax,
+        received_amount: amountTendered,
+        change_amount: change,
+        items: cartItems.map(item => ({
+            name: item.name,
+            price: item.unitPrice,
+            qty: item.quantity,
+            subtotal: item.unitPrice * item.quantity // PHP側が求める小計を追加
+        }))
+    };
 
     const isConfirm = confirm(`合計金額は ￥${total.toLocaleString()} です。\nお会計画面に進みますか？`);
     
     if (isConfirm) {
-        window.location.href = 'check_v1.1.html'; // 計上画面のファイル名に合わせてください
+        fetch('../../backend/api/save_transaction.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dbPayload) // ⭕ 用意した正しいデータを送信
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                console.log('データベースへの登録が成功しました。');
+                window.location.href = 'check_v1.1.html'; 
+            } else {
+                alert('売上データの保存に失敗しました: ' + (result.error || '不明なエラー'));
+            }
+        })
+        .catch(error => {
+            console.error('通信エラーが発生しました:', error);
+            alert('サーバーとの通信に失敗しました。');
+        });
     }
 }
 
 // ==========================================
-// 6. 計上画面が開いたときの処理（データの開封）
+// 6. 計上画面が開いたときの処理
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // 計上画面にだけ存在するID（result-total）があるかチェック
     const resultTotalEl = document.getElementById('result-total');
     
     if (resultTotalEl) {
-        // 倉庫からデータを取り出す
         const dataStr = localStorage.getItem('posReceiptData');
-        if (!dataStr) return; // データが無ければ何もしない
+        if (!dataStr) return; 
 
         const data = JSON.parse(dataStr);
-
-        // ① 大きな「お会計金額」に反映
         resultTotalEl.innerText = data.total.toLocaleString();
 
-        // ② レシート内の商品リストを作成して反映
         const itemsContainer = document.getElementById('result-items');
-        itemsContainer.innerHTML = '';
-        data.items.forEach(item => {
-            const itemTotal = item.unitPrice * item.quantity;
-            const qtyText = item.quantity > 1 ? `<span class="text-xs ml-1 bg-gray-200 px-1 rounded">x${item.quantity}</span>` : '';
-            itemsContainer.innerHTML += `
-                <div class="flex justify-between items-center mb-1">
-                    <span>${item.name}${qtyText}</span>
-                    <span>￥${itemTotal.toLocaleString()}</span>
-                </div>
-            `;
-        });
+        if (itemsContainer) {
+            itemsContainer.innerHTML = '';
+            data.items.forEach(item => {
+                const itemTotal = item.unitPrice * item.quantity;
+                const qtyText = item.quantity > 1 ? `<span class="text-xs ml-1 bg-gray-200 px-1 rounded">x${item.quantity}</span>` : '';
+                itemsContainer.innerHTML += `
+                    <div class="flex justify-between items-center mb-1">
+                        <span>${item.name}${qtyText}</span>
+                        <span>￥${itemTotal.toLocaleString()}</span>
+                    </div>
+                `;
+            });
+        }
 
-        // ③ 各種金額と日時の反映
-        document.getElementById('result-subtotal').innerText = '￥' + data.subtotal.toLocaleString();
-        document.getElementById('result-tax').innerText = '￥' + data.tax.toLocaleString();
-        document.getElementById('result-receipt-total').innerText = '￥' + data.total.toLocaleString();
-        document.getElementById('result-tendered').innerText = '￥' + data.tendered.toLocaleString();
-        document.getElementById('result-change').innerText = '￥' + data.change.toLocaleString();
-        document.getElementById('result-datetime').innerText = '印字日時: ' + data.timestamp;
+        const subtotalEl = document.getElementById('result-subtotal');
+        const taxEl = document.getElementById('result-tax');
+        const receiptTotalEl = document.getElementById('result-receipt-total');
+        const tenderedEl = document.getElementById('result-tendered');
+        const changeEl = document.getElementById('result-change');
+        const datetimeEl = document.getElementById('result-datetime');
+
+        if (subtotalEl) subtotalEl.innerText = '￥' + data.subtotal.toLocaleString();
+        if (taxEl) taxEl.innerText = '￥' + data.tax.toLocaleString();
+        if (receiptTotalEl) receiptTotalEl.innerText = '￥' + data.total.toLocaleString();
+        if (tenderedEl) tenderedEl.innerText = '￥' + data.tendered.toLocaleString();
+        if (changeEl) changeEl.innerText = '￥' + data.change.toLocaleString();
+        if (datetimeEl) datetimeEl.innerText = '印字日時: ' + data.timestamp;
     }
 });
 
-// --- 預り金専用モーダルの処理 ---
-let currentModalTendered = ""; // モーダル内の入力保持用
+// ==========================================
+// 7. 預り金専用モーダルの処理
+// ==========================================
+let currentModalTendered = ""; 
 
-// モーダルを開く（下からスライド）
 function openPaymentModal() {
     const totalText = document.getElementById('total-display').innerText;
-    document.getElementById('modal-total').innerText = totalText;
+    const modalTotalEl = document.getElementById('modal-total');
+    if (modalTotalEl) modalTotalEl.innerText = totalText;
     
-    currentModalTendered = ""; // 入力をリセット
+    currentModalTendered = ""; 
     updateModalDisplay();
 
-    // Tailwindのクラスを切り替えてアニメーション発動
     const modal = document.getElementById('payment-modal');
     const bg = document.getElementById('payment-bg');
     const panel = document.getElementById('payment-panel');
 
-    modal.classList.replace('pointer-events-none', 'pointer-events-auto');
-    bg.classList.replace('opacity-0', 'opacity-100');
-    panel.classList.replace('translate-y-full', 'translate-y-0');
+    if (modal && bg && panel) {
+        modal.classList.replace('pointer-events-none', 'pointer-events-auto');
+        bg.classList.replace('opacity-0', 'opacity-100');
+        panel.classList.replace('translate-y-full', 'translate-y-0');
+    }
 }
 
-// モーダルを閉じる
 function closePaymentModal() {
     const modal = document.getElementById('payment-modal');
     const bg = document.getElementById('payment-bg');
     const panel = document.getElementById('payment-panel');
 
-    bg.classList.replace('opacity-100', 'opacity-0');
-    panel.classList.replace('translate-y-0', 'translate-y-full');
-    
-    // アニメーションが終わるのを待ってからクリック不可にする
-    setTimeout(() => {
-        modal.classList.replace('pointer-events-auto', 'pointer-events-none');
-    }, 300);
+    if (modal && bg && panel) {
+        bg.classList.replace('opacity-100', 'opacity-0');
+        panel.classList.replace('translate-y-0', 'translate-y-full');
+        
+        setTimeout(() => {
+            modal.classList.replace('pointer-events-auto', 'pointer-events-none');
+        }, 300);
+    }
 }
 
-// モーダル専用テンキー入力
 function modalInput(numStr) {
     if (currentModalTendered === "0" && numStr !== "00") {
         currentModalTendered = numStr;
@@ -409,10 +473,10 @@ function modalInput(numStr) {
     updateModalDisplay();
 }
 
-// クイックボタン（ちょうど、1000円など）
 function modalQuickInput(val) {
     if (val === 'exact') {
-        const total = parseInt(document.getElementById('modal-total').innerText.replace(/,/g, ''));
+        const modalTotalEl = document.getElementById('modal-total');
+        const total = modalTotalEl ? (parseInt(modalTotalEl.innerText.replace(/,/g, '')) || 0) : 0;
         currentModalTendered = total.toString();
     } else {
         currentModalTendered = val.toString();
@@ -420,132 +484,51 @@ function modalQuickInput(val) {
     updateModalDisplay();
 }
 
-// モーダル内クリア
 function modalClear() {
     currentModalTendered = "";
     updateModalDisplay();
 }
 
-// モーダル内の画面更新（お釣り計算もここで行う）
 function updateModalDisplay() {
-    const total = parseInt(document.getElementById('modal-total').innerText.replace(/,/g, '')) || 0;
+    const modalTotalEl = document.getElementById('modal-total');
+    const total = modalTotalEl ? (parseInt(modalTotalEl.innerText.replace(/,/g, '')) || 0) : 0;
     const tendered = parseInt(currentModalTendered) || 0;
     const change = tendered - total;
 
-    document.getElementById('modal-tendered').innerText = tendered.toLocaleString() || "0";
+    const modalTenderedEl = document.getElementById('modal-tendered');
+    const modalChangeEl = document.getElementById('modal-change');
+
+    if (modalTenderedEl) modalTenderedEl.innerText = tendered.toLocaleString() || "0";
     
-    // お釣りはマイナスにならないように表示
-    if (tendered >= total) {
-        document.getElementById('modal-change').innerText = change.toLocaleString();
-    } else {
-        document.getElementById('modal-change').innerText = "0";
+    if (modalChangeEl) {
+        if (tendered >= total) {
+            modalChangeEl.innerText = change.toLocaleString();
+        } else {
+            modalChangeEl.innerText = "0";
+        }
     }
 }
 
-// 会計を確定するボタン
 function submitPayment() {
     const tendered = parseInt(currentModalTendered) || 0;
-    const total = parseInt(document.getElementById('modal-total').innerText.replace(/,/g, '')) || 0;
+    const modalTotalEl = document.getElementById('modal-total');
+    const total = modalTotalEl ? (parseInt(modalTotalEl.innerText.replace(/,/g, '')) || 0) : 0;
 
-    // 金額が足りているかチェック
     if (tendered < total) {
         alert("お預り金額が不足しています。");
         return;
     }
 
-    // ここでデータを保存して、メイン画面の「お会計」処理へ流す
-    document.getElementById('tendered-display').innerText = tendered.toLocaleString();
-    document.getElementById('change-display').innerText = (tendered - total).toLocaleString();
+    amountTendered = tendered; 
     
-    // データを保存（計上画面へ渡す用）
+    const tenderedDisp = document.getElementById('tendered-display');
+    const changeDisp = document.getElementById('change-display');
+
+    if (tenderedDisp) tenderedDisp.innerText = tendered.toLocaleString();
+    if (changeDisp) changeDisp.innerText = (tendered - total).toLocaleString();
+    
     localStorage.setItem('tendered', tendered);
     
-    // モーダルを閉じて、次の画面へ飛ぶ
     closePaymentModal();
-    goToCheckout();
-}
-
-// ==========================================
-// 追加：UIを元に戻すヘルパー関数
-// ==========================================
-function resetTenderUI() {
-    const productArea = document.getElementById('product-area');
-    const priceSummary = document.getElementById('price-summary');
-    const modeBadge = document.getElementById('mode-badge');
-    
-    if(productArea) productArea.classList.remove('lock-overlay');
-    if(priceSummary) priceSummary.classList.remove('active-summary');
-    if(modeBadge) modeBadge.innerText = '入力中金額';
-}
-
-// ==========================================
-// 上書き：入力表示と枠色の更新
-// ==========================================
-function updateInputDisplay() {
-    const containerEl = document.getElementById('input-container');
-    const badgeEl = document.getElementById('mode-badge');
-
-    if (displayElement) {
-        displayElement.innerText = Number(currentInputValue).toLocaleString();
-    }
-
-    // HTMLの緑色設定に合わせて、正しく青色(預り金)に切り替える処理
-    if (containerEl && badgeEl) {
-        if (isTenderMode) {
-            // 【預り金モード】青系に変更
-            containerEl.classList.replace('border-green-500', 'border-blue-500');
-            badgeEl.classList.replace('bg-green-500', 'bg-blue-600');
-            displayElement.classList.replace('text-gray-800', 'text-blue-700');
-        } else {
-            // 【通常モード】元の緑に戻す
-            containerEl.classList.replace('border-blue-500', 'border-green-500');
-            badgeEl.classList.replace('bg-blue-600', 'bg-green-500');
-            displayElement.classList.replace('text-blue-700', 'text-gray-800');
-        }
-    }
-}
-
-// ==========================================
-// 上書き：預り金ボタンを押した時の処理
-// ==========================================
-function setTenderedAmount() {
-    isTenderMode = true;     
-    currentInputValue = '0'; 
-    needResetInput = false;
-    updateInputDisplay();
-    
-    // UIを「預り金モード」に変形させる
-    document.getElementById('product-area').classList.add('lock-overlay');
-    document.getElementById('price-summary').classList.add('active-summary');
-    document.getElementById('mode-badge').innerText = 'お預り金入力中';
-
-    // 【追加】決定ボタンをオレンジから青に変更
-    const confirmBtn = document.getElementById('btn-confirm');
-    if (confirmBtn) {
-        // bg-orange-500 を bg-blue-600 に、border-orange-700 を border-blue-800 に置換
-        confirmBtn.classList.replace('bg-orange-500', 'bg-blue-600');
-        confirmBtn.classList.replace('border-orange-700', 'border-blue-800');
-        confirmBtn.classList.replace('hover:bg-orange-600', 'hover:bg-blue-700');
-    }
-}
-
-// ==========================================
-// 追加：UIを元に戻すヘルパー関数
-// ==========================================
-function resetTenderUI() {
-    const productArea = document.getElementById('product-area');
-    const priceSummary = document.getElementById('price-summary');
-    const modeBadge = document.getElementById('mode-badge');
-    
-    if(productArea) productArea.classList.remove('lock-overlay');
-    if(priceSummary) priceSummary.classList.remove('active-summary');
-    if(modeBadge) modeBadge.innerText = '入力中金額';
-
-    // 【追加】決定ボタンを青から元のオレンジに戻す
-    const confirmBtn = document.getElementById('btn-confirm');
-    if (confirmBtn) {
-        confirmBtn.classList.replace('bg-blue-600', 'bg-orange-500');
-        confirmBtn.classList.replace('border-blue-800', 'border-orange-700');
-        confirmBtn.classList.replace('hover:bg-blue-700', 'hover:bg-orange-600');
-    }
+    goToCheckout(); 
 }
