@@ -542,3 +542,25 @@ display: grid;
     background-color: #cbd5e1;
     border-radius: 4px;
 }
+/* フッター全体のスタイル */
+.admin-footer {
+  background-color: #581c87; /* bg-purple-900: 濃い紫 */
+  color: #d8b4fe;            /* text-purple-300: 薄い紫 */
+  padding: 0.75rem 2rem;     /* p-3(上下12px) と px-8(左右32px) の組み合わせ */
+  font-size: 0.75rem;        /* text-xs: フォントサイズ 12px */
+  line-height: 1rem;         /* text-xs に含まれる行の高さ */
+  display: flex;             /* flex */
+  justify-content: space-between; /* justify-between: 両端に配置 */
+  flex-shrink: 0;            /* shrink-0: 要素を縮ませない */
+}
+
+/* 左側のアイテムを並べるコンテナ */
+.footer-left {
+  display: flex;             /* flex */
+  align-items: center;       /* items-center: 上下中央揃え */
+}
+
+/* 右側の「Admin Mode」のテキスト */
+.footer-right {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* font-mono: 等幅フォント */
+}

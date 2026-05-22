@@ -9,21 +9,20 @@
 </head>
 <body class="bg-purple-50 h-screen w-screen flex flex-col font-sans select-none overflow-hidden text-gray-800">
 
-  <header class="bg-purple-900 p-3 flex justify-between items-center shrink-0 shadow-md text-white">
-    <div class="flex items-center space-x-3">
-      <div class="w-8 h-8 bg-purple-600 rounded flex items-center justify-center font-bold text-white shadow-inner">管</div>
-      <span class="text-lg font-bold tracking-tighter">新鮮野菜 産直ポス - 管理システム</span>
-    </div>
-    <div class="flex items-center space-x-6">
-      <div class="text-right border-r pr-6 border-purple-700">
-        <span id="current-date" class="text-purple-300 text-xs block">----/--/-- (-)</span>
-        <span id="current-time" class="text-xl font-mono font-bold text-white">--:--:--</span>
-      </div>
-      <a href="A01_look_login.html" class="bg-rose-600 hover:bg-rose-700 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg active:scale-95 no-underline text-white">
-        ログアウト
-      </a>
-    </div>
-  </header>
+  <header class="main-header">
+        <div class="header-left">
+            <div class="logo">管</div>
+            <h1 class="page-title">新鮮野菜 産直ポス - 管理システム</h1>
+        </div>
+
+        <div class="header-right">
+            <div class="datetime-display">
+                <div id="current-date" class="date">2026/05/15 (金)</div>
+                <div id="current-time" class="time">10:53:56</div>
+            </div>
+            <a href="A01_look_login.html" class="logout-button">ログアウト</a>
+        </div>
+    </header>
 
   <main class="flex-grow flex flex-col items-center justify-center p-6">
     
@@ -58,13 +57,11 @@
 
   </main>
 
-  <footer class="bg-purple-900 text-purple-300 p-3 text-xs flex justify-between px-8 shrink-0">
-    <div class="flex items-center">
-        <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-        ログイン中：管理者（店主）
+<footer class="admin-footer">
+  <div class="footer-left">
     </div>
-    <div class="font-mono">System Version 1.1</div>
-  </footer>
+  <div class="footer-right">Admin Mode</div>
+</footer>
 
   <script src="admin_script.js"></script>
 </body>

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>売上分析画面 - 野菜屋レジ管理</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* カスタムスクロールバーを紫系統に */
@@ -15,22 +16,20 @@
 </head>
 <body class="bg-violet-50 h-screen w-screen flex flex-col font-sans select-none overflow-hidden text-slate-800">
 
-  <header class="bg-purple-900 p-4 flex justify-between items-center shrink-0 shadow-lg text-white">
-    <div class="flex items-center space-x-3">
-      <div class="w-8 h-8 bg-purple-700 rounded flex items-center justify-center text-sm font-bold shadow-inner border border-purple-500">管</div>
-      <span class="text-lg font-bold tracking-wider">新鮮野菜 産直ポス - 売上管理システム</span>
-    </div>
-    <div class="flex items-center space-x-4">
-      <div class="text-sm bg-purple-800/50 px-4 py-1.5 rounded-full text-purple-100 border border-purple-700 flex items-center font-mono tracking-wide">
-        <span id="header-date">2026/05/20 (水)</span>
-        <span id="header-time" class="ml-2 font-bold text-white">11:18:00</span>
-        <span class="text-xs text-purple-300 ml-2 pl-2 border-l border-purple-700/60">接続中</span>
-      </div>
-      <a href="A02_admin_home.html" class="bg-purple-700 hover:bg-purple-600 active:bg-purple-800 active:scale-95 transition-all text-white text-sm font-bold px-5 py-2 rounded-lg shadow-sm no-underline flex items-center border border-purple-500">
-        管理者メニューへ戻る
-      </a>
-    </div>
-  </header>
+    <header class="main-header">
+        <div class="header-left">
+            <div class="logo">管</div>
+            <h1 class="page-title">新鮮野菜 産直ポス - 売上管理システム</h1>
+        </div>
+
+        <div class="header-right">
+            <div class="datetime-display">
+                <div id="current-date" class="date">2026/05/15 (金)</div>
+                <div id="current-time" class="time">10:53:56</div>
+            </div>
+            <a href="A02_admin_home.html" class="logout-button">管理者メニューへ戻る</a>
+        </div>
+    </header>
 
   <main class="flex-grow flex flex-col p-8 overflow-hidden">
     
@@ -91,9 +90,11 @@
 
   </main>
 
-  <footer class="bg-purple-950 text-purple-400 p-2 text-xs text-center shrink-0 border-t border-purple-800">
-    Administration Sales Report Mode - Fresh Veggie POS System
-  </footer>
+<footer class="admin-footer">
+  <div class="footer-left">
+    </div>
+  <div class="footer-right">Admin Mode</div>
+</footer>
 
   <script>
     window.onload = () => {
