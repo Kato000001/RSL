@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* カスタムスクロールバーを紫系統に */
     .custom-scrollbar::-webkit-scrollbar { width: 8px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f5f3ff; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #ddd6fe; border-radius: 4px; }
@@ -62,7 +61,6 @@
     </div>
 
     <div class="flex-grow flex gap-6 overflow-hidden">
-      
       <div class="w-2/3 bg-white rounded-2xl shadow-lg border border-purple-100 overflow-hidden flex flex-col">
         <div class="p-6 border-b border-purple-50 flex justify-between items-center shrink-0">
           <h3 id="table-title" class="text-lg font-black text-slate-700 flex items-center">
@@ -105,14 +103,11 @@
           <canvas id="revenueChart"></canvas>
         </div>
       </div>
-
     </div>
-
   </main>
 
 <footer class="admin-footer">
-  <div class="footer-left">
-    </div>
+  <div class="footer-left"></div>
   <div class="footer-right">Admin Mode</div>
 </footer>
 
@@ -181,25 +176,12 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { 
-                color: '#64748b', 
-                maxRotation: 0,
-                autoSkip: true,
-                maxTicksLimit: 12
-              }
+              ticks: { color: '#64748b', maxRotation: 0, autoSkip: true, maxTicksLimit: 12 }
             },
             y: {
               position: 'right', 
-              grid: {
-                color: '#f1f5f9', 
-                borderDash: [3, 3] 
-              },
-              ticks: {
-                color: '#64748b', 
-                callback: function(value) {
-                  return value.toLocaleString();
-                }
-              },
+              grid: { color: '#f1f5f9', borderDash: [3, 3] },
+              ticks: { color: '#64748b', callback: function(value) { return value.toLocaleString(); } },
               beginAtZero: true
             }
           }
@@ -207,9 +189,6 @@
       });
     }
 
-    // ==========================================
-    // 実際の取得データ(details)を元にリアルタイム集計するロジック
-    // ==========================================
     function updateChartWithActualData(period, details) {
       if (!revenueChart) return;
 
@@ -217,65 +196,30 @@
       let newData = [];
 
       if (period === 'daily') {
-        // 【日別】0時〜23時の24時間枠
         newLabels = Array.from({length: 24}, (_, i) => `${i}時`);
         newData = Array(24).fill(0);
-
         details.forEach(item => {
           const timePart = item.time.includes(' ') ? item.time.split(' ')[1] : item.time;
           const hour = parseInt(timePart.split(':')[0], 10);
-          
           if (!isNaN(hour) && hour >= 0 && hour < 24) {
             newData[hour] += parseInt(item.total_amount, 10) || 0;
           }
         });
       } 
       else if (period === 'weekly') {
-        // 【週別】日・月・火・水・木・金・土 の7枠に固定 ★今回修正箇所
         newLabels = ['日', '月', '火', '水', '木', '金', '土'];
         newData = Array(7).fill(0);
-
         details.forEach(item => {
           const datePart = item.time.split(' ')[0]; 
-          // JSのDateで正しくパースできるようにハイフンをスラッシュに置換
           const dateObj = new Date(datePart.replace(/-/g, '/')); 
-          
           if (!isNaN(dateObj)) {
-            const dayOfWeek = dateObj.getDay(); // 0(日) 〜 6(土)を取得
+            const dayOfWeek = dateObj.getDay(); 
             newData[dayOfWeek] += parseInt(item.total_amount, 10) || 0;
           }
         });
       }
       else if (period === 'monthly') {
-        // 【月別】実際にデータがある日付ごとに集計（X軸は日付の昇順）
-        const dateMap = {};
-        
-        details.forEach(item => {
-          const datePart = item.time.split(' ')[0];
-          let labelStr = datePart;
-
-          if (datePart.includes('-')) {
-            const parts = datePart.split('-');
-            if (parts.length === 3) labelStr = `${parseInt(parts[1], 10)}/${parseInt(parts[2], 10)}`;
-          } else if (datePart.includes('/')) {
-            const parts = datePart.split('/');
-            if (parts.length === 3) labelStr = `${parseInt(parts[1], 10)}/${parseInt(parts[2], 10)}`;
-          }
-
-          const amount = parseInt(item.total_amount, 10) || 0;
-          if (!dateMap[labelStr]) dateMap[labelStr] = 0;
-          dateMap[labelStr] += amount;
-        });
-
-        newLabels = Object.keys(dateMap).sort((a, b) => {
-          const [aM, aD] = a.split('/').map(Number);
-          const [bM, bD] = b.split('/').map(Number);
-          return aM !== bM ? aM - bM : aD - bD;
-        });
-        newData = newLabels.map(label => dateMap[label]);
-      } 
-      else if (period === 'yearly') {
-        // 【年別】1月〜12月の固定枠
+        // ★ご要望通り、元の「年別」のロジックを「月別」に完全移植（1月〜12月）
         newLabels = Array.from({length: 12}, (_, i) => `${i + 1}月`);
         newData = Array(12).fill(0);
 
@@ -292,6 +236,30 @@
             newData[month - 1] += parseInt(item.total_amount, 10) || 0;
           }
         });
+      } 
+      else if (period === 'yearly') {
+        // ★年別は2025年、2026年などの「年ごとの比較」にしています
+        const yearMap = {};
+
+        details.forEach(item => {
+          const datePart = item.time.split(' ')[0];
+          let yearStr = "";
+          if (datePart.includes('-')) {
+            yearStr = datePart.split('-')[0];
+          } else if (datePart.includes('/')) {
+            yearStr = datePart.split('/')[0];
+          }
+
+          if (yearStr) {
+            const labelStr = `${yearStr}年`;
+            const amount = parseInt(item.total_amount, 10) || 0;
+            if (!yearMap[labelStr]) yearMap[labelStr] = 0;
+            yearMap[labelStr] += amount;
+          }
+        });
+
+        newLabels = Object.keys(yearMap).sort();
+        newData = newLabels.map(label => yearMap[label]);
       }
 
       revenueChart.data.labels = newLabels;
@@ -305,6 +273,9 @@
 
     async function loadSalesData(period) {
       try {
+        // ※注意：もし月別タブ(1〜12月)で5月の売上しかグラフに出ない場合、
+        // PHP側の get_sales_data.php?period=monthly が「今月1ヶ月分」のデータしか
+        // 返していないことが原因です。1〜12月全てを出すにはAPIから年間データを取得する必要があります。
         const response = await fetch(`../../backend/api/get_sales_data.php?period=${period}`);
         const data = await response.json();
 
@@ -326,7 +297,6 @@
 
         data.details.forEach(item => {
           const timeOnly = item.time.split(' ')[1] || item.time;
-
           const rowHTML = `
             <tr class="hover:bg-purple-50/50 transition-colors border-b border-purple-50">
               <td class="py-4 px-2 text-slate-400 font-mono text-sm">${timeOnly}</td>
@@ -340,7 +310,6 @@
           tbody.insertAdjacentHTML('beforeend', rowHTML);
         });
 
-        // 取得したデータをもとにグラフを描画
         updateChartWithActualData(period, data.details);
 
       } catch (error) {
@@ -365,8 +334,8 @@
       let prefix = "";
       if(period === 'daily') prefix = "本日";
       if(period === 'weekly') prefix = "今週";
-      if(period === 'monthly') prefix = "今月";
-      if(period === 'yearly') prefix = "今年";
+      if(period === 'monthly') prefix = "月別";
+      if(period === 'yearly') prefix = "年別";
 
       summaryTitle.textContent = `${prefix}合計売上（税込）`;
       if(chartDateLabel) chartDateLabel.textContent = `${prefix}の売上推移`;
