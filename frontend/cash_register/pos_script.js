@@ -30,6 +30,11 @@ let needResetInput = false;  // 次の数字入力で表示をリセットする
 let amountTendered = 0;      // 預り金
 let isTenderMode = false;    // 預り金入力モード中かどうか
 
+// ==========================================
+// ⭕ 税率管理：DBから取得して保持する
+// ==========================================
+let currentTaxRate = 0.08; // デフォルト8%（DB取得前の初期値）
+
 // --- HTML要素の取得 ---
 const displayElement = document.getElementById('input-display');
 const receiptListElement = document.getElementById('receipt-list');
@@ -38,8 +43,24 @@ const taxElement = document.getElementById('tax-display');
 const totalElement = document.getElementById('total-display');
 
 // ⭕ POS連動用：APIのURLと商品データ保持配列
-const API_URL = '../../backend/api/products_api.php';
+const TAX_API_URL = 'http://localhost/RSL/backend/api/tax_api.php';
+const API_URL = '../../backend/api/products_api.php'; // 商品API用のパス
 let productsData = []; 
+
+async function loadTaxRate() {
+    try {
+        const res = await fetch(TAX_API_URL);
+        const data = await res.json();
+        if (data.success) {
+            currentTaxRate = data.tax_rate / 100; // 例: 8 → 0.08
+            console.log(`税率をDBから取得しました: ${data.tax_rate}%`);
+        } else {
+            console.warn('税率取得に失敗。デフォルト8%を使用します。');
+        }
+    } catch (e) {
+        console.warn('税率APIへの通信失敗。デフォルト8%を使用します。', e);
+    }
+}
 
 // ==========================================
 // ⭕ POS連動：データベースから商品を読み込む処理
@@ -60,9 +81,11 @@ async function loadPOSProducts() {
 }
 
 // ページ読み込み時の初期化処理
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // メインお会計画面（#product-area が存在するとき）のみ商品読み込みとフィルターを有効化
     if (document.getElementById('product-area')) {
+        // 税率とDB商品を並行取得
+        await loadTaxRate();
         loadPOSProducts(); 
         setupFilterEvents(); 
     }
@@ -99,7 +122,7 @@ function renderProductGrid(filterKeyword) {
             }
         }
 
-        // データベースの情報を元に、美しいグリーンのデザインボタンを生成
+        // データベースの情報を元に、美しいグリーのデザインボタンを生成
         const card = document.createElement('button');
         card.className = "bg-green-50 hover:bg-green-100 border-2 border-green-200 active:border-green-400 active:scale-95 transition-all rounded-xl py-6 flex flex-col items-center justify-center gap-1";
         card.setAttribute("onclick", `addProduct('${product.name}', ${product.price})`);
@@ -343,8 +366,8 @@ function renderReceipt() {
 
     receiptListElement.scrollTop = receiptListElement.scrollHeight;
 
-    const taxRate = 0.08;
-    const tax = Math.floor(subtotal * taxRate);
+    // ⭕ DBから取得した currentTaxRate を使用（デフォルト0.08）
+    const tax = Math.floor(subtotal * currentTaxRate);
     const total = subtotal + tax; 
 
     if (subtotalElement) subtotalElement.innerText = subtotal.toLocaleString();
@@ -414,7 +437,9 @@ function goToCheckout() {
 
     let subtotal = 0;
     cartItems.forEach(item => subtotal += (item.unitPrice * item.quantity));
-    const tax = Math.floor(subtotal * 0.08);
+
+    // ⭕ DBから取得した currentTaxRate を使用
+    const tax = Math.floor(subtotal * currentTaxRate);
     const total = subtotal + tax;
     
     // 金額不足のガードバリデーション
@@ -434,11 +459,12 @@ function goToCheckout() {
         total: total,
         tendered: amountTendered,
         change: change,
-        timestamp: timeString
+        timestamp: timeString,
+        taxRate: Math.round(currentTaxRate * 100) // レシートに税率を表示するために保持
     };
     localStorage.setItem('posReceiptData', JSON.stringify(receiptData));
 
-    // データベース（PHP）送信用の正しい構造データ
+    // データベース（PHP）送信用の構造データ
     const dbPayload = {
         total_amount: total,
         tax_amount: tax,
@@ -466,17 +492,14 @@ function goToCheckout() {
         .then(result => {
             if (result.success) {
                 console.log('データベースへの登録が成功しました。');
-                // 💡 新しいお会計確認画面のファイル名「R02_accounting.html」に遷移
                 window.location.href = 'R02_accounting.html'; 
             } else {
                 alert('売上データの保存に失敗しました: ' + (result.error || '不明なエラー'));
-                // 💡 エラー時も「R02_accounting.html」に遷移
                 window.location.href = 'R02_accounting.html';
             }
         })
         .catch(error => {
             console.error('通信エラーが発生しました:', error);
-            // 💡 通信エラー時も「R02_accounting.html」に遷移
             window.location.href = 'R02_accounting.html';
         });
     }
@@ -518,7 +541,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const datetimeEl = document.getElementById('result-datetime');
 
         if (subtotalEl) subtotalEl.innerText = '￥' + data.subtotal.toLocaleString();
-        if (taxEl) taxEl.innerText = '￥' + data.tax.toLocaleString();
+        // ⭕ レシートの消費税ラベルに実際の税率を表示
+        if (taxEl) {
+            const taxRateLabel = data.taxRate !== undefined ? `消費税(${data.taxRate}%)` : '消費税(8%)';
+            const taxLabelEl = taxEl.closest('div')?.querySelector('span:first-child');
+            if (taxLabelEl) taxLabelEl.textContent = taxRateLabel;
+            taxEl.innerText = '￥' + data.tax.toLocaleString();
+        }
         if (receiptTotalEl) receiptTotalEl.innerText = '￥' + data.total.toLocaleString();
         if (tenderedEl) tenderedEl.innerText = '￥' + data.tendered.toLocaleString();
         if (changeEl) changeEl.innerText = '￥' + data.change.toLocaleString();
@@ -585,6 +614,17 @@ function modalQuickInput(val) {
     updateModalDisplay();
 }
 
+function modalQuickInput(val) {
+    if (val === 'exact') {
+        const modalTotalEl = document.getElementById('modal-total');
+        const total = modalTotalEl ? (parseInt(modalTotalEl.innerText.replace(/,/g, '')) || 0) : 0;
+        currentModalTendered = total.toString();
+    } else {
+        currentModalTendered = val.toString();
+    }
+    updateModalDisplay();
+}
+
 function modalClear() {
     currentModalTendered = "";
     updateModalDisplay();
@@ -615,7 +655,6 @@ function submitPayment() {
     const modalTotalEl = document.getElementById('modal-total');
     const total = modalTotalEl ? (parseInt(modalTotalEl.innerText.replace(/,/g, '')) || 0) : 0;
 
-    // お預り金不足のブロック処理
     if (tendered < total) {
         alert(`【お預り金額不足】\nお預り金が合計金額に達していません！\n\n合計税込金額: ￥${total.toLocaleString()}\n入力されたお預り金: ￥${tendered.toLocaleString()}\n不足額: ￥${(total - tendered).toLocaleString()}`);
         return;
@@ -632,7 +671,5 @@ function submitPayment() {
     localStorage.setItem('tendered', tendered);
     
     closePaymentModal();
-    
-    // 正式なお会計関数（内部で R02_accounting.html へのジャンプ処理が走ります）
     goToCheckout(); 
 }
