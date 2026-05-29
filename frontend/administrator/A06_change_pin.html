@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>パスコード変更 - 野菜屋レジ管理</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background-color: #f3e8ff;
+      font-family: sans-serif;
+    }
+
+    .pin-dots {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin: 14px 0 8px;
+    }
+    .pin-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 3px solid #a855f7;
+      background: transparent;
+      transition: background 0.15s ease;
+    }
+    .pin-dot.filled  { background: #7e22ce; }
+    .pin-dot.success { border-color: #16a34a; background: #16a34a; }
+    .pin-dot.error   { border-color: #dc2626; background: #dc2626; }
+
+    /* ステップインジケーター */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .step { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .step-circle {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 1.3rem;
+      border: 2px solid #d8b4fe; color: #d8b4fe;
+      background: transparent; transition: all 0.3s ease;
+    }
+    .step-circle.active {
+      border-color: #7e22ce; background: #7e22ce; color: white;
+      box-shadow: 0 0 0 4px #e9d5ff;
+    }
+    .step-circle.done { border-color: #16a34a; background: #16a34a; color: white; }
+    .step-label { font-size: 0.8rem; font-weight: bold; color: #a855f7; white-space: nowrap; }
+    .step-label.active { color: #7e22ce; }
+    .step-label.done   { color: #16a34a; }
+    .step-line {
+      width: 64px; height: 3px; background: #e9d5ff;
+      margin-bottom: 20px; transition: background 0.3s;
+    }
+    .step-line.done { background: #16a34a; }
+
+    /* PINカード */
+    .pin-card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px 24px 16px;
+      border: 2px solid #e9d5ff;
+      margin-bottom: 12px;
+      transition: border-color 0.3s, box-shadow 0.3s, opacity 0.3s;
+    }
+    .pin-card.active-card  { border-color: #7e22ce; box-shadow: 0 0 0 3px #e9d5ff; }
+    .pin-card.success-card { border-color: #16a34a; box-shadow: 0 0 0 3px #dcfce7; }
+    .pin-card.error-card   { border-color: #dc2626; box-shadow: 0 0 0 3px #fee2e2; animation: shake 0.3s ease; }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%     { transform: translateX(-6px); }
+      75%     { transform: translateX(6px); }
+    }
+
+    /* 結果バナー */
+    .result-banner { display: none; padding: 10px 14px; border-radius: 10px; font-weight: bold; text-align: center; margin-top: 6px; font-size: 0.85rem; }
+    .result-banner.success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; display: block; }
+    .result-banner.error   { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; display: block; }
+
+    /* テンキー — A01準拠 */
+    .numpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .numpad-btn {
+      background: #f5f3ff;
+      border: 1px solid #ddd6fe;
+      border-bottom: 4px solid #c4b5fd;
+      border-radius: 12px;
+      font-size: 1.7rem;
+      font-weight: bold;
+      font-family: sans-serif;
+      color: #4c1d95;
+      cursor: pointer;
+      padding: 22px 0;
+      transition: background 0.1s;
+      user-select: none;
+      text-align: center;
+    }
+    .numpad-btn:hover   { background: #ede9fe; }
+    .numpad-btn:active  { border-bottom-width: 0; transform: translateY(4px); }
+
+    /* 消去（赤系） */
+    .numpad-btn.danger {
+      background: #fff1f2; border-color: #fecdd3; border-bottom-color: #fda4af;
+      color: #be123c; font-size: 1.15rem;
+    }
+    .numpad-btn.danger:hover { background: #ffe4e6; }
+
+    /* 確定（青系・A01の「確定」と同色） */
+    .numpad-btn.confirm {
+      background: #7e22ce; border-color: #6b21a8; border-bottom-color: #4c1d95;
+      color: white; font-size: 1.3rem;
+    }
+    .numpad-btn.confirm:hover  { background: #9333ea; }
+    .numpad-btn.confirm:active { background: #6b21a8; }
+    .numpad-btn.confirm:disabled {
+      background: #e9d5ff; border-color: #d8b4fe; border-bottom-color: #c4b5fd;
+      color: #a855f7; cursor: not-allowed; transform: none;
+    }
+    /* リセットボタン（テンキー上部・横長） */
+    .reset-btn {
+      width: 100%;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-bottom: 4px solid #fda4af;
+      border-radius: 12px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      font-family: sans-serif;
+      color: #be123c;
+      cursor: pointer;
+      padding: 14px 0;
+      margin-bottom: 14px;
+      transition: background 0.1s;
+      user-select: none;
+      text-align: center;
+    }
+    .reset-btn:hover  { background: #ffe4e6; }
+    .reset-btn:active { border-bottom-width: 0; transform: translateY(4px); }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col select-none overflow-hidden text-gray-800">
+
+  <header class="main-header">
+    <div class="header-left">
+      <div class="logo">管</div>
+      <h1 class="page-title">新鮮野菜 産直ポス - パスコード変更</h1>
+    </div>
+    <div class="header-right">
+      <div class="datetime-display">
+        <div id="current-date" class="date">----/--/-- (-)</div>
+        <div id="current-time" class="time">--:--:--</div>
+      </div>
+      <a href="A02_admin_home.html" class="logout-button">管理者メニューへ戻る</a>
+    </div>
+  </header>
+
+  <main style="flex-grow:1; display:flex; align-items:center; justify-content:center; padding:24px 48px; gap:56px; overflow:hidden;">
+
+    <!-- 左カラム：ステップ＋PINカード -->
+    <div style="flex:1; max-width:500px; display:flex; flex-direction:column; justify-content:center;">
+
+      <div class="step-indicator">
+        <div class="step">
+          <div class="step-circle active" id="step-circle-1">1</div>
+          <div class="step-label active" id="step-label-1">現在のPIN</div>
+        </div>
+        <div class="step-line" id="step-line-1"></div>
+        <div class="step">
+          <div class="step-circle" id="step-circle-2">2</div>
+          <div class="step-label" id="step-label-2">新しいPIN</div>
+        </div>
+        <div class="step-line" id="step-line-2"></div>
+        <div class="step">
+          <div class="step-circle" id="step-circle-3">3</div>
+          <div class="step-label" id="step-label-3">PIN確認</div>
+        </div>
+      </div>
+
+      <div class="pin-card active-card" id="card-current">
+        <div style="font-size:0.85rem; font-weight:bold; color:#9333ea; margin-bottom:3px; letter-spacing:0.05em;">STEP 1 — 現在のパスコード</div>
+        <div style="font-weight:bold; color:#1f2937; font-size:1rem;">現在の4桁PINを入力してください</div>
+        <div class="pin-dots" id="dots-current">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+      </div>
+
+      <div class="pin-card" id="card-new" style="opacity:0.4;">
+        <div style="font-size:0.85rem; font-weight:bold; color:#9333ea; margin-bottom:3px; letter-spacing:0.05em;">STEP 2 — 新しいパスコード</div>
+        <div style="font-weight:bold; color:#1f2937; font-size:1rem;">新しい4桁PINを入力してください</div>
+        <div class="pin-dots" id="dots-new">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+      </div>
+
+      <div class="pin-card" id="card-confirm" style="opacity:0.4;">
+        <div style="font-size:0.85rem; font-weight:bold; color:#9333ea; margin-bottom:3px; letter-spacing:0.05em;">STEP 3 — 新しいパスコード（確認）</div>
+        <div style="font-weight:bold; color:#1f2937; font-size:1rem;">もう一度、新しいPINを入力してください</div>
+        <div class="pin-dots" id="dots-confirm">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+      </div>
+
+      <div class="result-banner" id="result-banner"></div>
+    </div>
+
+    <!-- 右カラム：テンキー（A01準拠） -->
+    <div style="flex-shrink:0; width:340px; display:flex; flex-direction:column; justify-content:center;">
+      <!-- リセットボタン（横長・テンキー上） -->
+      <button class="reset-btn" onclick="resetAll()">リセット</button>
+      <div class="numpad-grid">
+        <!-- 7 8 9 -->
+        <button class="numpad-btn" onclick="inputNum('7')">7</button>
+        <button class="numpad-btn" onclick="inputNum('8')">8</button>
+        <button class="numpad-btn" onclick="inputNum('9')">9</button>
+        <!-- 4 5 6 -->
+        <button class="numpad-btn" onclick="inputNum('4')">4</button>
+        <button class="numpad-btn" onclick="inputNum('5')">5</button>
+        <button class="numpad-btn" onclick="inputNum('6')">6</button>
+        <!-- 1 2 3 -->
+        <button class="numpad-btn" onclick="inputNum('1')">1</button>
+        <button class="numpad-btn" onclick="inputNum('2')">2</button>
+        <button class="numpad-btn" onclick="inputNum('3')">3</button>
+        <!-- 入力取消 0 確定 -->
+        <button class="numpad-btn danger" onclick="deleteOne()">入力取消</button>
+        <button class="numpad-btn" onclick="inputNum('0')">0</button>
+        <button class="numpad-btn confirm" id="btn-confirm" onclick="handleConfirm()" disabled>確定</button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="admin-footer">
+    <div class="footer-left"></div>
+    <div class="footer-right">Admin Mode</div>
+  </footer>
+
+  <script>
+    // --- 時計 ---
+    function updateClock() {
+      const now = new Date();
+      const days = ['日','月','火','水','木','金','土'];
+      const d = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
+      const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      const de = document.getElementById('current-date');
+      const te = document.getElementById('current-time');
+      if (de) de.textContent = d;
+      if (te) te.textContent = t;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- 状態 ---
+    let step = 'current'; // 'current' | 'new' | 'confirm'
+    let pins = { current: '', new: '', confirm: '' };
+
+    const confirmBtn = document.getElementById('btn-confirm');
+
+    // 数字入力
+    function inputNum(num) {
+      if (pins[step].length >= 4) return;
+      pins[step] += num;
+      updateDots(step);
+      // 4桁揃ったら確定ボタンを有効化
+      confirmBtn.disabled = (pins[step].length < 4);
+    }
+
+    // ドット更新
+    function updateDots(which) {
+      const dots = document.querySelectorAll(`#dots-${which} .pin-dot`);
+      dots.forEach((dot, i) => {
+        dot.classList.remove('filled','success','error');
+        if (i < pins[which].length) dot.classList.add('filled');
+      });
+    }
+
+    // カード状態
+    function setCardState(cardId, state) {
+      const card = document.getElementById(cardId);
+      card.classList.remove('active-card','success-card','error-card');
+      card.style.opacity = '1';
+      if      (state === 'active')   card.classList.add('active-card');
+      else if (state === 'success')  card.classList.add('success-card');
+      else if (state === 'error') {
+        card.classList.add('error-card');
+        setTimeout(() => card.classList.remove('error-card'), 400);
+      }
+      else if (state === 'disabled') card.style.opacity = '0.4';
+    }
+
+    // ステップ完了
+    function setStepDone(num) {
+      const circle = document.getElementById(`step-circle-${num}`);
+      const label  = document.getElementById(`step-label-${num}`);
+      circle.classList.remove('active'); circle.classList.add('done');
+      circle.textContent = '✓';
+      label.classList.remove('active'); label.classList.add('done');
+      if (num < 3) document.getElementById(`step-line-${num}`).classList.add('done');
+    }
+
+    // ステップアクティブ
+    function setStepActive(num) {
+      document.getElementById(`step-circle-${num}`).classList.add('active');
+      document.getElementById(`step-label-${num}`).classList.add('active');
+    }
+
+    // 結果表示
+    function showResult(type, msg) {
+      const b = document.getElementById('result-banner');
+      b.className = `result-banner ${type}`;
+      b.textContent = msg;
+    }
+    function hideResult() {
+      document.getElementById('result-banner').className = 'result-banner';
+    }
+
+    // 確定ボタン押下
+    async function handleConfirm() {
+      if (pins[step].length < 4) return;
+      confirmBtn.disabled = true;
+
+      if (step === 'current') {
+        // 現在PINの認証
+        try {
+          const res  = await fetch('../../backend/api/admin_login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: pins.current })
+          });
+          const data = await res.json();
+          if (data.success) {
+            setStepDone(1);
+            setCardState('card-current', 'success');
+            document.querySelectorAll('#dots-current .pin-dot').forEach(d => {
+              d.classList.remove('filled'); d.classList.add('success');
+            });
+            step = 'new';
+            setCardState('card-new', 'active');
+            setStepActive(2);
+            hideResult();
+          } else {
+            setCardState('card-current', 'error');
+            pins.current = '';
+            updateDots('current');
+            showResult('error', '現在のパスコードが正しくありません。もう一度入力してください。');
+          }
+        } catch (e) {
+          setCardState('card-current', 'error');
+          pins.current = '';
+          updateDots('current');
+          showResult('error', '通信エラーが発生しました。');
+        }
+
+      } else if (step === 'new') {
+        // 新PINをSTEP2で確定
+        setStepDone(2);
+        setCardState('card-new', 'success');
+        document.querySelectorAll('#dots-new .pin-dot').forEach(d => {
+          d.classList.remove('filled'); d.classList.add('success');
+        });
+        step = 'confirm';
+        setCardState('card-confirm', 'active');
+        setStepActive(3);
+        hideResult();
+
+      } else if (step === 'confirm') {
+        // 確認PIN照合
+        if (pins.confirm !== pins.new) {
+          setCardState('card-confirm', 'error');
+          pins.confirm = '';
+          updateDots('confirm');
+          showResult('error', '新しいパスコードが一致しません。もう一度入力してください。');
+          return;
+        }
+        // DB保存
+        try {
+          const res  = await fetch('../../backend/api/change_pin.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ current_pin: pins.current, new_pin: pins.new })
+          });
+          const data = await res.json();
+          if (data.success) {
+            setStepDone(3);
+            setCardState('card-confirm', 'success');
+            document.querySelectorAll('#dots-confirm .pin-dot').forEach(d => {
+              d.classList.remove('filled'); d.classList.add('success');
+            });
+            showResult('success', '✅ パスコードの変更が完了しました！管理者メニューに戻ります...');
+            setTimeout(() => { window.location.href = 'A02_admin_home.html'; }, 2500);
+          } else {
+            setCardState('card-confirm', 'error');
+            pins.confirm = '';
+            updateDots('confirm');
+            showResult('error', 'エラー: ' + (data.message || '変更に失敗しました。'));
+          }
+        } catch (e) {
+          setCardState('card-confirm', 'error');
+          pins.confirm = '';
+          updateDots('confirm');
+          showResult('error', '通信エラーが発生しました。');
+        }
+      }
+    }
+
+    // 1文字削除
+    function deleteOne() {
+      if (pins[step].length > 0) {
+        pins[step] = pins[step].slice(0, -1);
+        updateDots(step);
+        confirmBtn.disabled = (pins[step].length < 4);
+      }
+    }
+
+    // 全取消
+    function resetAll() {
+      step = 'current';
+      pins = { current: '', new: '', confirm: '' };
+      ['current','new','confirm'].forEach(w => updateDots(w));
+      setCardState('card-current', 'active');
+      setCardState('card-new',     'disabled');
+      setCardState('card-confirm', 'disabled');
+      document.querySelectorAll('.pin-dot').forEach(d => d.classList.remove('filled','success','error'));
+      [1,2,3].forEach(n => {
+        const circle = document.getElementById(`step-circle-${n}`);
+        const label  = document.getElementById(`step-label-${n}`);
+        circle.classList.remove('active','done');
+        circle.textContent = n;
+        label.classList.remove('active','done');
+        if (n < 3) document.getElementById(`step-line-${n}`).classList.remove('done');
+      });
+      setStepActive(1);
+      hideResult();
+      confirmBtn.disabled = true;
+    }
+  </script>
+
+</body>
+</html>
