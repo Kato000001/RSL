@@ -195,66 +195,85 @@
       let newLabels = [];
       let newData = [];
 
+      // ★同じお会計を二重に足さないようにするセット
+      const processedTx = new Set();
+
       if (period === 'daily') {
         newLabels = Array.from({length: 24}, (_, i) => `${i}時`);
         newData = Array(24).fill(0);
+
         details.forEach(item => {
-          const timePart = item.time.includes(' ') ? item.time.split(' ')[1] : item.time;
-          const hour = parseInt(timePart.split(':')[0], 10);
-          if (!isNaN(hour) && hour >= 0 && hour < 24) {
-            newData[hour] += parseInt(item.total_amount, 10) || 0;
+          const txKey = item.time; 
+          if (!processedTx.has(txKey)) {
+            const timePart = item.time.includes(' ') ? item.time.split(' ')[1] : item.time;
+            const hour = parseInt(timePart.split(':')[0], 10);
+            if (!isNaN(hour) && hour >= 0 && hour < 24) {
+              newData[hour] += parseInt(item.total_amount, 10) || 0;
+            }
+            processedTx.add(txKey);
           }
         });
       } 
       else if (period === 'weekly') {
         newLabels = ['日', '月', '火', '水', '木', '金', '土'];
         newData = Array(7).fill(0);
+
         details.forEach(item => {
-          const datePart = item.time.split(' ')[0]; 
-          const dateObj = new Date(datePart.replace(/-/g, '/')); 
-          if (!isNaN(dateObj)) {
-            const dayOfWeek = dateObj.getDay(); 
-            newData[dayOfWeek] += parseInt(item.total_amount, 10) || 0;
+          const txKey = item.time;
+          if (!processedTx.has(txKey)) {
+            const datePart = item.time.split(' ')[0]; 
+            const dateObj = new Date(datePart.replace(/-/g, '/')); 
+            if (!isNaN(dateObj)) {
+              const dayOfWeek = dateObj.getDay(); 
+              newData[dayOfWeek] += parseInt(item.total_amount, 10) || 0;
+            }
+            processedTx.add(txKey);
           }
         });
       }
       else if (period === 'monthly') {
-        // ★ご要望通り、元の「年別」のロジックを「月別」に完全移植（1月〜12月）
         newLabels = Array.from({length: 12}, (_, i) => `${i + 1}月`);
         newData = Array(12).fill(0);
 
         details.forEach(item => {
-          const datePart = item.time.split(' ')[0];
-          let month = 0;
-          if (datePart.includes('-')) {
-            month = parseInt(datePart.split('-')[1], 10);
-          } else if (datePart.includes('/')) {
-            month = parseInt(datePart.split('/')[1], 10);
-          }
-          
-          if (!isNaN(month) && month >= 1 && month <= 12) {
-            newData[month - 1] += parseInt(item.total_amount, 10) || 0;
+          const txKey = item.time;
+          if (!processedTx.has(txKey)) {
+            const datePart = item.time.split(' ')[0];
+            let month = 0;
+            if (datePart.includes('-')) {
+              month = parseInt(datePart.split('-')[1], 10);
+            } else if (datePart.includes('/')) {
+              month = parseInt(datePart.split('/')[1], 10);
+            }
+            
+            if (!isNaN(month) && month >= 1 && month <= 12) {
+              newData[month - 1] += parseInt(item.total_amount, 10) || 0;
+            }
+            processedTx.add(txKey);
           }
         });
       } 
       else if (period === 'yearly') {
-        // ★年別は2025年、2026年などの「年ごとの比較」にしています
         const yearMap = {};
 
         details.forEach(item => {
-          const datePart = item.time.split(' ')[0];
-          let yearStr = "";
-          if (datePart.includes('-')) {
-            yearStr = datePart.split('-')[0];
-          } else if (datePart.includes('/')) {
-            yearStr = datePart.split('/')[0];
-          }
+          const txKey = item.time;
+          if (!processedTx.has(txKey)) {
+            const datePart = item.time.split(' ')[0];
+            let yearStr = "";
+            if (datePart.includes('-')) {
+              yearStr = datePart.split('-')[0];
+            } else if (datePart.includes('/')) {
+              yearStr = datePart.split('/')[0];
+            }
 
-          if (yearStr) {
-            const labelStr = `${yearStr}年`;
-            const amount = parseInt(item.total_amount, 10) || 0;
-            if (!yearMap[labelStr]) yearMap[labelStr] = 0;
-            yearMap[labelStr] += amount;
+            if (yearStr) {
+              const labelStr = `${yearStr}年`;
+              const amount = parseInt(item.total_amount, 10) || 0;
+              if (!yearMap[labelStr]) yearMap[labelStr] = 0;
+              yearMap[labelStr] += amount;
+            }
+            processedTx.add(txKey);
           }
         });
 
@@ -273,9 +292,6 @@
 
     async function loadSalesData(period) {
       try {
-        // ※注意：もし月別タブ(1〜12月)で5月の売上しかグラフに出ない場合、
-        // PHP側の get_sales_data.php?period=monthly が「今月1ヶ月分」のデータしか
-        // 返していないことが原因です。1〜12月全てを出すにはAPIから年間データを取得する必要があります。
         const response = await fetch(`../../backend/api/get_sales_data.php?period=${period}`);
         const data = await response.json();
 
