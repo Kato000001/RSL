@@ -86,7 +86,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-purple-50">
-              </tbody>
+            </tbody>
           </table>
         </div>
       </div>
@@ -117,19 +117,17 @@
 </footer>
 
   <script>
-    let revenueChart; // グラフ用の変数
+    let revenueChart; 
 
     window.onload = () => {
-      initChart(); // グラフを初期化
-      loadSalesData('daily');
-      updateChartForPeriod('daily'); // 最初は「日別」のグラフを描画
+      initChart(); 
+      loadSalesData('daily'); 
       updateClock();
       setInterval(updateClock, 1000);
     };
 
     function updateClock() {
       const now = new Date();
-      
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
@@ -149,9 +147,6 @@
       if (timeEl) timeEl.textContent = timeString;
     }
 
-    // ==========================================
-    // グラフの設定と初期化
-    // ==========================================
     function initChart() {
       const ctx = document.getElementById('revenueChart').getContext('2d');
       revenueChart = new Chart(ctx, {
@@ -161,8 +156,8 @@
           datasets: [{
             label: '売上高',
             data: [],
-            backgroundColor: '#7e22ce', // ★変更：棒の色を紫（purple-700）に変更
-            hoverBackgroundColor: '#6b21a8', // ★変更：ホバー時は少し濃い紫（purple-800）に
+            backgroundColor: '#7e22ce', 
+            hoverBackgroundColor: '#6b21a8', 
             borderRadius: 4,
             barThickness: 10, 
           }]
@@ -173,16 +168,21 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#1e1b4b', // ★変更：ツールチップを濃い紫ネイビーに
+              backgroundColor: '#1e1b4b', 
               titleColor: '#fff',
-              bodyColor: '#fff'
+              bodyColor: '#fff',
+              callbacks: {
+                label: function(context) {
+                  return '売上: ¥' + context.raw.toLocaleString();
+                }
+              }
             }
           },
           scales: {
             x: {
               grid: { display: false },
               ticks: { 
-                color: '#64748b', // ★変更：文字を白用グレー（slate-500）に
+                color: '#64748b', 
                 maxRotation: 0,
                 autoSkip: true,
                 maxTicksLimit: 12
@@ -191,11 +191,11 @@
             y: {
               position: 'right', 
               grid: {
-                color: '#f1f5f9', // ★変更：目盛り線を薄いグレー（slate-100）にして見やすく
+                color: '#f1f5f9', 
                 borderDash: [3, 3] 
               },
               ticks: {
-                color: '#64748b', // ★変更：文字を白用グレーに
+                color: '#64748b', 
                 callback: function(value) {
                   return value.toLocaleString();
                 }
@@ -208,29 +208,90 @@
     }
 
     // ==========================================
-    // タブに合わせてグラフの軸とデータを切り替え
+    // 実際の取得データ(details)を元にリアルタイム集計するロジック
     // ==========================================
-    function updateChartForPeriod(period) {
+    function updateChartWithActualData(period, details) {
       if (!revenueChart) return;
 
       let newLabels = [];
       let newData = [];
 
       if (period === 'daily') {
+        // 【日別】0時〜23時の24時間枠
         newLabels = Array.from({length: 24}, (_, i) => `${i}時`);
-        newData = newLabels.map((_, i) => (i > 8 && i < 20) ? Math.floor(Math.random() * 3000) : 0);
+        newData = Array(24).fill(0);
+
+        details.forEach(item => {
+          const timePart = item.time.includes(' ') ? item.time.split(' ')[1] : item.time;
+          const hour = parseInt(timePart.split(':')[0], 10);
+          
+          if (!isNaN(hour) && hour >= 0 && hour < 24) {
+            newData[hour] += parseInt(item.total_amount, 10) || 0;
+          }
+        });
       } 
       else if (period === 'weekly') {
-        newLabels = ['月', '火', '水', '木', '金', '土', '日'];
-        newData = Array.from({length: 7}, () => Math.floor(Math.random() * 20000));
-      } 
+        // 【週別】日・月・火・水・木・金・土 の7枠に固定 ★今回修正箇所
+        newLabels = ['日', '月', '火', '水', '木', '金', '土'];
+        newData = Array(7).fill(0);
+
+        details.forEach(item => {
+          const datePart = item.time.split(' ')[0]; 
+          // JSのDateで正しくパースできるようにハイフンをスラッシュに置換
+          const dateObj = new Date(datePart.replace(/-/g, '/')); 
+          
+          if (!isNaN(dateObj)) {
+            const dayOfWeek = dateObj.getDay(); // 0(日) 〜 6(土)を取得
+            newData[dayOfWeek] += parseInt(item.total_amount, 10) || 0;
+          }
+        });
+      }
       else if (period === 'monthly') {
-        newLabels = Array.from({length: 31}, (_, i) => `${i + 1}日`);
-        newData = Array.from({length: 31}, () => Math.floor(Math.random() * 10000));
+        // 【月別】実際にデータがある日付ごとに集計（X軸は日付の昇順）
+        const dateMap = {};
+        
+        details.forEach(item => {
+          const datePart = item.time.split(' ')[0];
+          let labelStr = datePart;
+
+          if (datePart.includes('-')) {
+            const parts = datePart.split('-');
+            if (parts.length === 3) labelStr = `${parseInt(parts[1], 10)}/${parseInt(parts[2], 10)}`;
+          } else if (datePart.includes('/')) {
+            const parts = datePart.split('/');
+            if (parts.length === 3) labelStr = `${parseInt(parts[1], 10)}/${parseInt(parts[2], 10)}`;
+          }
+
+          const amount = parseInt(item.total_amount, 10) || 0;
+          if (!dateMap[labelStr]) dateMap[labelStr] = 0;
+          dateMap[labelStr] += amount;
+        });
+
+        newLabels = Object.keys(dateMap).sort((a, b) => {
+          const [aM, aD] = a.split('/').map(Number);
+          const [bM, bD] = b.split('/').map(Number);
+          return aM !== bM ? aM - bM : aD - bD;
+        });
+        newData = newLabels.map(label => dateMap[label]);
       } 
       else if (period === 'yearly') {
+        // 【年別】1月〜12月の固定枠
         newLabels = Array.from({length: 12}, (_, i) => `${i + 1}月`);
-        newData = Array.from({length: 12}, () => Math.floor(Math.random() * 200000));
+        newData = Array(12).fill(0);
+
+        details.forEach(item => {
+          const datePart = item.time.split(' ')[0];
+          let month = 0;
+          if (datePart.includes('-')) {
+            month = parseInt(datePart.split('-')[1], 10);
+          } else if (datePart.includes('/')) {
+            month = parseInt(datePart.split('/')[1], 10);
+          }
+          
+          if (!isNaN(month) && month >= 1 && month <= 12) {
+            newData[month - 1] += parseInt(item.total_amount, 10) || 0;
+          }
+        });
       }
 
       revenueChart.data.labels = newLabels;
@@ -279,6 +340,9 @@
           tbody.insertAdjacentHTML('beforeend', rowHTML);
         });
 
+        // 取得したデータをもとにグラフを描画
+        updateChartWithActualData(period, data.details);
+
       } catch (error) {
         console.error("通信エラーが発生しました:", error);
       }
@@ -315,7 +379,6 @@
       `;
 
       loadSalesData(period);
-      updateChartForPeriod(period);
     }
   </script>
 </body>
