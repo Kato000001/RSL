@@ -12,6 +12,25 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: #f5f3ff; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #ddd6fe; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #c4b5fd; }
+    
+    /* アコーディオン開閉のアニメーション用スタイル */
+    .detail-row {
+      display: none;
+      background-color: #fafafa;
+    }
+    .summary-row {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .summary-row:hover {
+      background-color: #f3e8ff !important;
+    }
+    .toggle-icon {
+      transition: transform 0.2s;
+    }
+    .rotated {
+      transform: rotate(90deg);
+    }
   </style>
 </head>
 <body class="bg-violet-50 h-screen w-screen flex flex-col font-sans select-none overflow-hidden text-slate-800">
@@ -35,10 +54,11 @@
     
     <div class="flex justify-center mb-6 shrink-0">
       <div class="bg-white p-1 rounded-xl shadow-md border border-purple-100 inline-flex">
-        <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn bg-purple-700 text-white px-8 py-2 rounded-lg font-bold text-sm transition-all shadow-md">日別</button>
-        <button onclick="switchTab('weekly')" id="tab-weekly" class="tab-btn text-purple-400 hover:bg-purple-50 px-8 py-2 rounded-lg font-bold text-sm transition-all">週別</button>
-        <button onclick="switchTab('monthly')" id="tab-monthly" class="tab-btn text-purple-400 hover:bg-purple-50 px-8 py-2 rounded-lg font-bold text-sm transition-all">月別</button>
-        <button onclick="switchTab('yearly')" id="tab-yearly" class="tab-btn text-purple-400 hover:bg-purple-50 px-8 py-2 rounded-lg font-bold text-sm transition-all">年別</button>
+        <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn bg-purple-700 text-white px-6 py-2 rounded-lg font-bold text-sm transition-all shadow-md">日別</button>
+        <button onclick="switchTab('weekly')" id="tab-weekly" class="tab-btn text-purple-400 hover:bg-purple-50 px-6 py-2 rounded-lg font-bold text-sm transition-all">週別</button>
+        <button onclick="switchTab('monthly_days')" id="tab-monthly_days" class="tab-btn text-purple-400 hover:bg-purple-50 px-6 py-2 rounded-lg font-bold text-sm transition-all">月間売上</button>
+        <button onclick="switchTab('monthly')" id="tab-monthly" class="tab-btn text-purple-400 hover:bg-purple-50 px-6 py-2 rounded-lg font-bold text-sm transition-all">月別</button>
+        <button onclick="switchTab('yearly')" id="tab-yearly" class="tab-btn text-purple-400 hover:bg-purple-50 px-6 py-2 rounded-lg font-bold text-sm transition-all">年別</button>
       </div>
     </div>
 
@@ -61,7 +81,7 @@
     </div>
 
     <div class="flex-grow flex gap-6 overflow-hidden">
-      <div class="w-2/3 bg-white rounded-2xl shadow-lg border border-purple-100 overflow-hidden flex flex-col">
+      <div class="w-7/12 bg-white rounded-2xl shadow-lg border border-purple-100 overflow-hidden flex flex-col">
         <div class="p-6 border-b border-purple-50 flex justify-between items-center shrink-0">
           <h3 id="table-title" class="text-lg font-black text-slate-700 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,24 +92,24 @@
         </div>
         
         <div class="overflow-y-auto flex-grow custom-scrollbar p-6 pt-0">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse table-fixed">
             <thead class="sticky top-0 bg-white text-purple-300 text-sm font-bold border-b-2 border-purple-50 z-10">
               <tr>
-                <th class="py-4 px-2">時刻</th>
-                <th class="py-4 px-2">商品詳細</th>
-                <th class="py-4 px-2 text-right">単価</th>
-                <th class="py-4 px-2 text-center">個数</th>
-                <th class="py-4 px-2 text-right">小計</th>
-                <th class="py-4 px-2 text-right w-32">合計(税込)</th>
+                <th class="py-4 px-2 w-1/4">集計単位 / 日時</th>
+                <th class="py-4 px-2 w-1/4">商品詳細</th>
+                <th class="py-4 px-2 text-right w-1/8">単価</th>
+                <th class="py-4 px-2 text-center w-1/12">個数</th>
+                <th class="py-4 px-2 text-right w-1/8">小計</th>
+                <th class="py-4 px-2 text-right w-1/6">合計(税込)</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-purple-50">
+            <tbody id="sales-tbody" class="divide-y divide-purple-50">
             </tbody>
           </table>
         </div>
       </div>
 
-      <div class="w-1/3 bg-white text-slate-800 p-6 rounded-2xl shadow-lg border border-purple-100 flex flex-col shrink-0">
+      <div class="w-5/12 bg-white text-slate-800 p-6 rounded-2xl shadow-lg border border-purple-100 flex flex-col shrink-0">
         <div class="mb-4">
           <span class="text-purple-400 text-sm font-bold block">合計</span>
           <div>
@@ -176,7 +196,12 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: '#64748b', maxRotation: 0, autoSkip: true, maxTicksLimit: 12 }
+              ticks: { 
+                color: '#64748b', 
+                maxRotation: 0, 
+                autoSkip: false, 
+                font: { size: 9 } 
+              }
             },
             y: {
               position: 'right', 
@@ -189,110 +214,310 @@
       });
     }
 
-    function updateChartWithActualData(period, details) {
+    // アコーディオン行の開閉を制御する関数
+    function toggleGroup(groupId) {
+      const detailRows = document.querySelectorAll(`.detail-of-${groupId}`);
+      const icon = document.getElementById(`icon-${groupId}`);
+      
+      detailRows.forEach(row => {
+        if (row.style.display === 'table-row') {
+          row.style.display = 'none';
+        } else {
+          row.style.display = 'table-row';
+        }
+      });
+      
+      if (icon) {
+        icon.classList.toggle('rotated');
+      }
+    }
+
+    function updateChartAndTable(period, details) {
       if (!revenueChart) return;
 
       let newLabels = [];
       let newData = [];
+      let displayTotalSales = 0; 
 
-      // ★同じお会計を二重に足さないようにするセット
       const processedTx = new Set();
+      const tbody = document.getElementById('sales-tbody');
+      tbody.innerHTML = ''; 
 
+      let baseDate = new Date(); 
+      if (details.length > 0) {
+        const sampleDate = details[0].time.split(' ')[0];
+        baseDate = new Date(sampleDate.replace(/-/g, '/'));
+      }
+
+      const currentDayIdx = baseDate.getDay(); 
+      const startOfWeek = new Date(baseDate);
+      startOfWeek.setDate(baseDate.getDate() - currentDayIdx);
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      let targetYear = baseDate.getFullYear();
+      let targetMonth = baseDate.getMonth() + 1;
+
+      // 1. 各集計用ラベル初期化
       if (period === 'daily') {
         newLabels = Array.from({length: 24}, (_, i) => `${i}時`);
         newData = Array(24).fill(0);
-
-        details.forEach(item => {
-          const txKey = item.time; 
-          if (!processedTx.has(txKey)) {
-            const timePart = item.time.includes(' ') ? item.time.split(' ')[1] : item.time;
-            const hour = parseInt(timePart.split(':')[0], 10);
-            if (!isNaN(hour) && hour >= 0 && hour < 24) {
-              newData[hour] += parseInt(item.total_amount, 10) || 0;
-            }
-            processedTx.add(txKey);
-          }
-        });
       } 
       else if (period === 'weekly') {
-        newLabels = ['日', '月', '火', '水', '木', '金', '土'];
-        newData = Array(7).fill(0);
-
-        details.forEach(item => {
-          const txKey = item.time;
-          if (!processedTx.has(txKey)) {
-            const datePart = item.time.split(' ')[0]; 
-            const dateObj = new Date(datePart.replace(/-/g, '/')); 
-            if (!isNaN(dateObj)) {
-              const dayOfWeek = dateObj.getDay(); 
-              newData[dayOfWeek] += parseInt(item.total_amount, 10) || 0;
-            }
-            processedTx.add(txKey);
-          }
+        newLabels = ['日', '月', '火', '水', '木', '金', '土'].map((day, idx) => {
+          const d = new Date(startOfWeek);
+          d.setDate(startOfWeek.getDate() + idx);
+          return `${day}(${d.getMonth() + 1}/${d.getDate()})`;
         });
+        newData = Array(7).fill(0);
+        const chartDateLabel = document.getElementById('chart-date-label');
+        if (chartDateLabel) {
+          const startStr = `${startOfWeek.getMonth() + 1}/${startOfWeek.getDate()}`;
+          const endStr = `${endOfWeek.getMonth() + 1}/${endOfWeek.getDate()}`;
+          chartDateLabel.textContent = `今週の売上推移 (${startStr} 〜 ${endStr})`;
+        }
+      }
+      else if (period === 'monthly_days') {
+        const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+        newLabels = Array.from({length: daysInMonth}, (_, i) => `${i + 1}日`);
+        newData = Array(daysInMonth).fill(0);
+        const chartDateLabel = document.getElementById('chart-date-label');
+        if (chartDateLabel) chartDateLabel.textContent = `${targetMonth}月度の売上推移`;
       }
       else if (period === 'monthly') {
         newLabels = Array.from({length: 12}, (_, i) => `${i + 1}月`);
         newData = Array(12).fill(0);
-
-        details.forEach(item => {
-          const txKey = item.time;
-          if (!processedTx.has(txKey)) {
-            const datePart = item.time.split(' ')[0];
-            let month = 0;
-            if (datePart.includes('-')) {
-              month = parseInt(datePart.split('-')[1], 10);
-            } else if (datePart.includes('/')) {
-              month = parseInt(datePart.split('/')[1], 10);
-            }
-            
-            if (!isNaN(month) && month >= 1 && month <= 12) {
-              newData[month - 1] += parseInt(item.total_amount, 10) || 0;
-            }
-            processedTx.add(txKey);
-          }
-        });
       } 
       else if (period === 'yearly') {
         const yearMap = {};
-
         details.forEach(item => {
-          const txKey = item.time;
-          if (!processedTx.has(txKey)) {
-            const datePart = item.time.split(' ')[0];
-            let yearStr = "";
-            if (datePart.includes('-')) {
-              yearStr = datePart.split('-')[0];
-            } else if (datePart.includes('/')) {
-              yearStr = datePart.split('/')[0];
-            }
-
-            if (yearStr) {
-              const labelStr = `${yearStr}年`;
-              const amount = parseInt(item.total_amount, 10) || 0;
-              if (!yearMap[labelStr]) yearMap[labelStr] = 0;
-              yearMap[labelStr] += amount;
-            }
-            processedTx.add(txKey);
-          }
+          const datePart = item.time.split(' ')[0];
+          const yearStr = datePart.includes('-') ? datePart.split('-')[0] : datePart.split('/')[0];
+          if (yearStr) yearMap[`${yearStr}年`] = 0;
         });
-
         newLabels = Object.keys(yearMap).sort();
-        newData = newLabels.map(label => yearMap[label]);
+        newData = Array(newLabels.length).fill(0);
       }
 
+      // 多階層集計用マップ
+      const groupMap = {};
+
+      // 2. データのフィルタリングとサブグループ多重集計
+      details.forEach(item => {
+        const datePart = item.time.split(' ')[0];
+        const timePart = item.time.includes(' ') ? item.time.split(' ')[1] : item.time;
+        const itemDate = new Date(datePart.replace(/-/g, '/'));
+        
+        let parts = datePart.includes('-') ? datePart.split('-') : datePart.split('/');
+        let itemYear = parseInt(parts[0], 10);
+        let itemMonth = parseInt(parts[1], 10);
+        let itemDay = parseInt(parts[2], 10);
+
+        let isValidPeriod = false;
+        let chartIndex = -1;
+        let groupKey = "";  // アコーディオンの親見出し
+        let subKey = "";    // アコーディオンの展開子要素の見出し(時間、または日付)
+
+        if (period === 'daily') {
+          const hour = parseInt(timePart.split(':')[0], 10);
+          if (!isNaN(hour) && hour >= 0 && hour < 24) {
+            chartIndex = hour;
+            isValidPeriod = true;
+          }
+        } 
+        else if (period === 'weekly') {
+          if (!isNaN(itemDate) && itemDate >= startOfWeek && itemDate <= endOfWeek) {
+            chartIndex = itemDate.getDay();
+            isValidPeriod = true;
+            groupKey = `${itemMonth}月${itemDay}日`;
+            subKey = timePart.substring(0, 5); // 週別は「時分」単位
+          }
+        }
+        else if (period === 'monthly_days') {
+          if (itemYear === targetYear && itemMonth === targetMonth) {
+            if (!isNaN(itemDay) && itemDay >= 1 && itemDay <= newData.length) {
+              chartIndex = itemDay - 1;
+              isValidPeriod = true;
+              groupKey = `${itemMonth}月${itemDay}日`;
+              subKey = timePart.substring(0, 5); // 月間も「時分」単位
+            }
+          }
+        }
+        else if (period === 'monthly') {
+          if (itemYear === targetYear) {
+            if (!isNaN(itemMonth) && itemMonth >= 1 && itemMonth <= 12) {
+              chartIndex = itemMonth - 1;
+              isValidPeriod = true;
+              groupKey = `${itemMonth}月`;
+              subKey = `${itemDay}日`; // ★月別は子要素を「日付」単位に集約！
+            }
+          }
+        }
+        else if (period === 'yearly') {
+          const labelStr = `${itemYear}年`;
+          chartIndex = newLabels.indexOf(labelStr);
+          if (chartIndex !== -1) {
+            isValidPeriod = true;
+            groupKey = labelStr;
+            subKey = `${itemMonth}月`; // ★年別は子要素を「月」単位に集約！
+          }
+        }
+
+        if (isValidPeriod) {
+          const txKey = item.time;
+          // 全体売上グラフ用の集計(重複取引防止)
+          if (!processedTx.has(txKey)) {
+            newData[chartIndex] += parseInt(item.total_amount, 10) || 0;
+            displayTotalSales += parseInt(item.total_amount, 10) || 0;
+            processedTx.add(txKey);
+          }
+
+          // 日別以外のアコーディオンデータ集計
+          if (period !== 'daily') {
+            if (!groupMap[groupKey]) {
+              groupMap[groupKey] = { subGroups: {} };
+            }
+            if (!groupMap[groupKey].subGroups[subKey]) {
+              groupMap[groupKey].subGroups[subKey] = {
+                amount: 0,
+                txKeys: new Set(),
+                productSummary: {} 
+              };
+            }
+            
+            const sub = groupMap[groupKey].subGroups[subKey];
+            
+            // 子要素（日付単位や時間単位）の中の売上合計を算出
+            if (!sub.txKeys.has(txKey)) {
+              sub.amount += parseInt(item.total_amount, 10) || 0;
+              sub.txKeys.add(txKey);
+            }
+
+            // 同一サブキー内での商品重複を合算（大根1個＋大根2個＝大根3個にまとめる）
+            if (!sub.productSummary[item.product_name]) {
+              sub.productSummary[item.product_name] = {
+                price: parseInt(item.price, 10),
+                quantity: 0,
+                subtotal: 0
+              };
+            }
+            sub.productSummary[item.product_name].quantity += parseInt(item.quantity, 10);
+            sub.productSummary[item.product_name].subtotal += parseInt(item.subtotal, 10);
+          }
+        }
+      });
+
+      // 3. テーブル行へのレンダリング
+      if (period === 'daily') {
+        details.forEach(item => {
+          const timePart = item.time.includes(' ') ? item.time.split(' ')[1] : item.time;
+          const hour = parseInt(timePart.split(':')[0], 10);
+          if (!isNaN(hour) && hour >= 0 && hour < 24) {
+            const rowHTML = `
+              <tr class="hover:bg-purple-50/50 transition-colors border-b border-purple-50">
+                <td class="py-4 px-2 text-slate-400 font-mono text-xs">${timePart}</td>
+                <td class="py-4 px-2 font-bold text-slate-800 text-sm truncate">${item.product_name}</td>
+                <td class="py-4 px-2 text-right text-slate-600 text-sm">¥${parseInt(item.price).toLocaleString()}</td>
+                <td class="py-4 px-2 text-center text-slate-600 text-sm">${item.quantity}</td>
+                <td class="py-4 px-2 text-right text-slate-600 text-sm">¥${parseInt(item.subtotal).toLocaleString()}</td>
+                <td class="py-4 px-2 text-right font-black text-base text-slate-800 border-l border-purple-50">¥${parseInt(item.total_amount).toLocaleString()}</td>
+              </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', rowHTML);
+          }
+        });
+      } else {
+        let uniqueIdCounter = 0;
+        
+        // 親グループ（5月、2026年など）をループ
+        Object.keys(groupMap).forEach(key => {
+          uniqueIdCounter++;
+          const group = groupMap[key];
+          
+          // 親グループ全体の純粋な合計額を算出
+          let groupTotal = 0;
+          Object.keys(group.subGroups).forEach(sk => {
+            groupTotal += group.subGroups[sk].amount;
+          });
+
+          const subKeysCount = Object.keys(group.subGroups).length;
+          // ラベルテキストの切り替え
+          let labelTypeText = "取引数";
+          if (period === 'monthly') labelTypeText = "営業日数";
+          if (period === 'yearly') labelTypeText = "営業月数";
+
+          // ① 親行（サマリー行）を出力
+          const summaryRowHTML = `
+            <tr onclick="toggleGroup(${uniqueIdCounter})" class="summary-row bg-purple-50/30 font-bold border-b border-purple-100">
+              <td class="py-4 px-2 text-purple-700 font-black text-sm flex items-center">
+                <svg id="icon-${uniqueIdCounter}" xmlns="http://www.w3.org/2000/svg" class="toggle-icon h-4 w-4 mr-1 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
+                </svg>
+                ${key} 合計
+              </td>
+              <td class="py-4 px-2 text-slate-400 text-xs text-left" colspan="4">${labelTypeText}: ${subKeysCount}件</td>
+              <td class="py-4 px-2 text-right text-purple-900 font-black text-base border-l border-purple-50">¥${groupTotal.toLocaleString()}</td>
+            </tr>
+          `;
+          tbody.insertAdjacentHTML('beforeend', summaryRowHTML);
+
+          // ② 子行群（タラップ部分：日付、または時間ごとにまとめて出力）
+          // 日付順・時間順に並べるためソート
+          Object.keys(group.subGroups).sort((a, b) => parseInt(a) - parseInt(b)).forEach(subKey => {
+            const subData = group.subGroups[subKey];
+            
+            // 商品ごとに展開して出力
+            Object.keys(subData.productSummary).forEach(prodName => {
+              const prod = subData.productSummary[prodName];
+              const detailRowHTML = `
+                <tr class="detail-row detail-of-${uniqueIdCounter} border-b border-slate-100">
+                  <td class="py-3 px-2 pl-7 text-purple-600 font-bold text-xs">${subKey}</td>
+                  <td class="py-3 px-2 text-slate-700 font-medium text-sm truncate">${prodName}</td>
+                  <td class="py-3 px-2 text-right text-slate-500 text-xs">¥${prod.price.toLocaleString()}</td>
+                  <td class="py-3 px-2 text-center text-slate-500 text-xs">${prod.quantity}</td>
+                  <td class="py-3 px-2 text-right text-slate-500 text-xs">¥${prod.subtotal.toLocaleString()}</td>
+                  <td class="py-3 px-2 text-right text-slate-600 font-bold text-sm border-l border-purple-50/50">¥${subData.amount.toLocaleString()}</td>
+                </tr>
+              `;
+              tbody.insertAdjacentHTML('beforeend', detailRowHTML);
+            });
+          });
+        });
+      }
+
+      // 右側売上合計値を書き換え
+      const chartTotalEl = document.getElementById('chart-total-sales');
+      if (chartTotalEl) chartTotalEl.textContent = displayTotalSales.toLocaleString();
+
+      // グラフの更新
       revenueChart.data.labels = newLabels;
       revenueChart.data.datasets[0].data = newData;
       
       const maxVal = Math.max(...newData);
       revenueChart.options.scales.y.suggestedMax = maxVal > 0 ? maxVal * 1.2 : 1000;
 
+      if (period === 'monthly_days') {
+        revenueChart.options.scales.x.ticks.autoSkip = false; 
+        revenueChart.data.datasets[0].barThickness = undefined; 
+      } else if (period === 'weekly') {
+        revenueChart.options.scales.x.ticks.autoSkip = false;
+        revenueChart.data.datasets[0].barThickness = 24; 
+      } else {
+        revenueChart.options.scales.x.ticks.autoSkip = true;
+        revenueChart.options.scales.x.ticks.maxTicksLimit = 12;
+        revenueChart.data.datasets[0].barThickness = 10;
+      }
+
       revenueChart.update();
     }
 
     async function loadSalesData(period) {
       try {
-        const response = await fetch(`../../backend/api/get_sales_data.php?period=${period}`);
+        const apiPeriod = (period === 'monthly_days' || period === 'weekly') ? 'monthly' : period;
+        const response = await fetch(`../../backend/api/get_sales_data.php?period=${apiPeriod}`);
         const data = await response.json();
 
         if (!data.success) {
@@ -305,28 +530,7 @@
         summaryElements[1].innerHTML = `${data.summary.count} <span class="text-lg font-bold text-slate-400">名</span>`; 
         summaryElements[2].textContent = `¥ ${data.summary.average.toLocaleString()}`; 
 
-        const chartTotalEl = document.getElementById('chart-total-sales');
-        if (chartTotalEl) chartTotalEl.textContent = data.summary.sales.toLocaleString();
-
-        const tbody = document.querySelector('tbody');
-        tbody.innerHTML = ''; 
-
-        data.details.forEach(item => {
-          const timeOnly = item.time.split(' ')[1] || item.time;
-          const rowHTML = `
-            <tr class="hover:bg-purple-50/50 transition-colors border-b border-purple-50">
-              <td class="py-4 px-2 text-slate-400 font-mono text-sm">${timeOnly}</td>
-              <td class="py-4 px-2 font-bold text-slate-800">${item.product_name}</td>
-              <td class="py-4 px-2 text-right text-slate-600">¥${parseInt(item.price).toLocaleString()}</td>
-              <td class="py-4 px-2 text-center text-slate-600">${item.quantity}</td>
-              <td class="py-4 px-2 text-right text-slate-600">¥${parseInt(item.subtotal).toLocaleString()}</td>
-              <td class="py-4 px-2 text-right font-black text-xl text-slate-800 border-l border-purple-50">¥${parseInt(item.total_amount).toLocaleString()}</td>
-            </tr>
-          `;
-          tbody.insertAdjacentHTML('beforeend', rowHTML);
-        });
-
-        updateChartWithActualData(period, data.details);
+        updateChartAndTable(period, data.details);
 
       } catch (error) {
         console.error("通信エラーが発生しました:", error);
@@ -350,6 +554,7 @@
       let prefix = "";
       if(period === 'daily') prefix = "本日";
       if(period === 'weekly') prefix = "今週";
+      if(period === 'monthly_days') prefix = "月間"; 
       if(period === 'monthly') prefix = "月別";
       if(period === 'yearly') prefix = "年別";
 
